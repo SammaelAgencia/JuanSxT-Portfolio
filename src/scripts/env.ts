@@ -21,7 +21,9 @@ export const lerp = (a: number, b: number, t: number): number => a + (b - a) * t
 export const clamp = (v: number, min = 0, max = 1): number =>
   Math.min(max, Math.max(min, v));
 
-type Task = (dt: number) => void;
+/** `dt` va normalizado a 60fps; `now` es la marca de tiempo cruda del frame,
+ *  que es lo que piden las librerías de scroll. */
+type Task = (dt: number, now: number) => void;
 
 const tasks = new Set<Task>();
 let rafId = 0;
@@ -31,7 +33,7 @@ function frame(now: number) {
   // dt normalizado a 60fps para que el lerp se comporte igual en 120Hz.
   const dt = last ? Math.min((now - last) / 16.667, 3) : 1;
   last = now;
-  for (const task of tasks) task(dt);
+  for (const task of tasks) task(dt, now);
   rafId = tasks.size ? requestAnimationFrame(frame) : 0;
 }
 

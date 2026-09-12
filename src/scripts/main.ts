@@ -8,7 +8,7 @@
  *     diferida y sólo si hacen falta: en móvil y con "reducir movimiento"
  *     nunca llegan a descargarse.
  */
-import { reduceMotion, isDesktop } from './env';
+import { reduceMotion, isDesktop, onTick } from './env';
 import { initReveal } from './reveal';
 import { initCursor, initMagnets } from './cursor';
 import { initField } from './field';
@@ -87,11 +87,14 @@ async function loadSmoothScroll(): Promise<void> {
     syncTouch: false,
   });
 
-  const raf = (time: number) => {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  };
-  requestAnimationFrame(raf);
+  /* Al bucle compartido, no a uno propio. Lenis trae su ejemplo con un
+     `requestAnimationFrame` recursivo, y copiarlo dejaba dos bucles pidiendo
+     frames a la vez: el suyo y el de `env.ts`, que es el que mueve cursor,
+     imanes y campo del hero. Dos bucles compitiendo es la causa más común de
+     jank en sitios como este. De regalo, el bucle compartido se apaga cuando
+     la pestaña deja de verse, así que el scroll suave tampoco gasta batería
+     de fondo. */
+  onTick((_dt, now) => lenis.raf(now));
 
   // Los anclas internas pasan por Lenis para que el desplazamiento sea suave.
   document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {

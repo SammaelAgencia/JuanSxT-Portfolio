@@ -3,16 +3,32 @@ Tipografías auto-alojadas. Sólo .woff2: es lo que sirve el sitio.
   titulos.woff2    Salty Ages       → --f-display
   parrafos.woff2   Berkelium Sans   → --f-sans
   enfasis.woff2    Gothicfed        → --f-serif (palabras entre *asteriscos*)
+  mono.woff2       Geist Mono       → --f-mono  (etiquetas, cifras y meta)
 
 Las declara src/styles/fonts.css y las nombra src/styles/tokens.css.
-La mono (Geist Mono) no vive aquí: viene del paquete de Fontsource.
 
-Los archivos de origen (.otf/.ttf) están en /fuentes-originales, fuera de
-public para que no se publiquen: pesan dos o tres veces lo mismo.
+La mono venía del paquete @fontsource-variable/geist-mono, que trae los nueve
+subconjuntos del alfabeto. El sitio está en español e inglés, así que sólo se
+usaba el latino: este archivo ES ese archivo, copiado tal cual desde
+node_modules/@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2
+antes de desinstalar el paquete. Para actualizarla, vuelve a instalarlo,
+copia el archivo latino aquí y desinstálalo otra vez.
+
+Los archivos de origen (.otf/.ttf) de las otras tres están en
+/fuentes-originales, fuera de public para que no se publiquen: pesan dos o
+tres veces lo mismo.
+
+PRECARGA
+--------
+titulos, parrafos y enfasis se precargan desde src/layouts/Base.astro: las
+tres salen por encima del pliegue. Si renombras un archivo, el <link> del
+layout se queda apuntando al vacío y la precarga se convierte en una descarga
+inútil: renómbralo también allí. La mono no se precarga a propósito —son
+etiquetas pequeñas y el `swap` no se nota.
 
 SI AÑADES MÁS PESOS
 -------------------
-Las tres caras actuales son estáticas y traen un único peso, así que ahora
+Las cuatro caras actuales son estáticas y traen un único peso, así que ahora
 mismo un 500 y un 800 del CSS se ven idénticos. Si consigues más pesos,
 déjalos como titulos-700.woff2, parrafos-500.woff2, etc. y añade un
 @font-face por archivo con su font-weight exacto, quitando el rango

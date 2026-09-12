@@ -11,14 +11,16 @@
  *            hueco enseña una placa con su nombre: sabes exactamente qué soltar.
  * `motion` → mp4/webm opcional de 3-6 s, sin audio. Sólo se descarga cuando el
  *            puntero entra en la fila, así que no penaliza la carga inicial.
- *            Si no existe, la tarjeta usa `cover` sin problema.
+ *            Decláralo ÚNICAMENTE si el archivo existe: un `motion` que apunta
+ *            a un archivo que no está es un 404 en el primer hover.
  *
- * Las rutas de archivo, el cliente y el año se escriben UNA vez: sólo el texto
- * traducible (título, disciplinas, resumen y resultado) va por idioma, en los
- * bloques `es` / `en` de cada proyecto.
+ * El `id` es a la vez el ancla de la escena y el nombre de los archivos en
+ * /public/media/work/: si renombras uno, renombra el otro.
  *
- * Reemplaza títulos, métricas y nombres de cliente por los definitivos cuando
- * tengas permiso para publicarlos.
+ * `client` y `year` se imprimen igual en las dos portadas, así que se escriben
+ * en forma neutra —nombres propios y rangos de años—, nunca con palabras que
+ * haya que traducir. Sólo el texto traducible (título, disciplinas, resumen y
+ * resultado) va por idioma, en los bloques `es` / `en` de cada proyecto.
  */
 import type { Lang } from '@i18n';
 
@@ -44,27 +46,27 @@ export type Project = {
 
 export const projects: Project[] = [
   {
-    id: 'plataforma-b2b',
+    id: 'yamaha-mexico',
     client: 'ABCW',
     year: '2025',
-    cover: '/media/work/plataforma-b2b.webp',
+    cover: '/media/work/yamaha-mexico.webp',
     gallery: [
-      '/media/work/plataforma-b2b-01.webp',
-      '/media/work/plataforma-b2b-02.webp',
-      '/media/work/plataforma-b2b-03.webp',
+      '/media/work/yamaha-mexico-01.webp',
+      '/media/work/yamaha-mexico-02.webp',
+      '/media/work/yamaha-mexico-03.webp',
     ],
-    motion: '/media/work/plataforma-b2b.mp4',
+    motion: '/media/work/yamaha-mexico.mp4',
     ratio: '4 / 3',
     accent: 'ultra',
     es: {
-      title: 'YAMAHA MÉXICO',
+      title: 'Yamaha México',
       discipline: ['Diseño Web', 'UI', 'UX'],
       summary:
         'El sitio anterior contaba con un diseño obsoleto y estaba saturado de información. Lo transformé en una experiencia moderna y vanguardista, simplificando la navegación y alineando su estética visual con los estándares internacionales de los otros sitios de YAMAHA.',
       outcome: 'Un sitio web completamente rediseñado, limpio y a la altura de una marca global.',
     },
     en: {
-      title: 'YAMAHA MÉXICO',
+      title: 'Yamaha México',
       discipline: ['Web Design', 'UI', 'UX'],
       summary:
         'The previous site had an obsolete design and was saturated with information. I transformed it into a modern, avant-garde experience, simplifying navigation and aligning its visual aesthetics with the international standards of other YAMAHA sites.',
@@ -73,8 +75,8 @@ export const projects: Project[] = [
   },
   {
     id: 'landing-conversion',
-    client: 'Cliente retail — ABCW',
-    year: '2026',
+    client: 'ABCW',
+    year: '2023 — 2026',
     cover: '/media/work/landing-conversion.webp',
     gallery: [
       '/media/work/landing-conversion-01.webp',
@@ -93,7 +95,7 @@ export const projects: Project[] = [
     },
     en: {
       title: 'Conversion landing pages',
-      discipline: ['UX strategy', 'UI', 'Lead generation'],
+      discipline: ['UX Strategy', 'UI', 'Lead Generation'],
       summary:
         'A landing page must be much more than just visually appealing. I created highly optimized pages directly connected to Paid Media campaigns, prioritizing friction reduction and user guidance to maximize lead generation without sacrificing visual aesthetics.',
       outcome: 'Optimized capture flows aligned to maximize ad campaign ROI.',
@@ -101,14 +103,15 @@ export const projects: Project[] = [
   },
   {
     id: 'identidad-marca',
-    client: 'SOMOS — Madrid — Freelance',
-    year: '2021',
+    client: 'SOMOS · Freelance',
+    year: '2017 — 2022',
     cover: '/media/work/identidad-marca.webp',
     gallery: [
       '/media/work/identidad-marca-01.webp',
       '/media/work/identidad-marca-02.webp',
       '/media/work/identidad-marca-03.webp',
     ],
+    motion: '/media/work/identidad-marca.mp4',
     ratio: '4 / 3',
     accent: 'clay',
     es: {
@@ -127,27 +130,26 @@ export const projects: Project[] = [
     },
   },
   {
-    id: 'realidad-aumentada',
-    client: 'SOMOS — ABCW — Freelance',
-    year: '2017 - Actualidad',
-    cover: '/media/work/realidad-aumentada.webp',
+    id: 'diseno-web',
+    client: 'SOMOS · ABCW · Freelance',
+    year: '2017 — 2026',
+    cover: '/media/work/diseno-web.webp',
     gallery: [
-      '/media/work/realidad-aumentada-01.webp',
-      '/media/work/realidad-aumentada-02.webp',
-      '/media/work/realidad-aumentada-03.webp',
+      '/media/work/diseno-web-01.webp',
+      '/media/work/diseno-web-02.webp',
+      '/media/work/diseno-web-03.webp',
     ],
-    motion: '/media/work/realidad-aumentada.mp4',
     ratio: '4 / 3',
     accent: 'lime',
     es: {
-      title: 'Diseño y Desarrollo Web',
+      title: 'Diseño y desarrollo web',
       discipline: ['Diseño Web', 'Resolución de Problemas', 'UI/UX'],
       summary:
         'A lo largo de mi trayectoria he construido una gran cantidad de sitios web, enfrentándome a todo tipo de retos técnicos y visuales. Mi enfoque va más allá de la estética: me especializo en diagnosticar y resolver problemas complejos de interfaz y experiencia de usuario para entregar productos funcionales, escalables y optimizados.',
       outcome: 'Decenas de sitios web publicados y problemas críticos de diseño resueltos con éxito.',
     },
     en: {
-      title: 'Web Design & Development',
+      title: 'Web design & development',
       discipline: ['Web Design', 'Problem Solving', 'UI/UX'],
       summary:
         'Throughout my career, I have built a large number of websites, tackling all kinds of technical and visual challenges. My focus goes beyond aesthetics: I specialize in diagnosing and solving complex interface and user experience problems to deliver functional, scalable, and optimized products.',
@@ -155,26 +157,26 @@ export const projects: Project[] = [
     },
   },
   {
-    id: 'ilustracion-nft',
-    client: 'Proyecto independiente',
-    year: '2022 - Actualidad',
-    cover: '/media/work/ilustracion-nft.webp',
+    id: 'ilustracion',
+    client: 'Freelance',
+    year: '2017 — 2026',
+    cover: '/media/work/ilustracion.webp',
     gallery: [
-      '/media/work/ilustracion-nft-01.webp',
-      '/media/work/ilustracion-nft-02.webp',
-      '/media/work/ilustracion-nft-03.webp',
+      '/media/work/ilustracion-01.webp',
+      '/media/work/ilustracion-02.webp',
+      '/media/work/ilustracion-03.webp',
     ],
     ratio: '4 / 3',
     accent: 'ember',
     es: {
-      title: 'Ilustración y Concept Art',
+      title: 'Ilustración y concept art',
       discipline: ['Ilustración Digital', 'Concept Art', 'Desarrollo Visual'],
       summary:
         'Cuento con experiencia en la creación de ilustraciones digitales y arte conceptual con un alto nivel de detalle y acabado profesional. Abarco desde el diseño de personajes y entornos hasta el desarrollo visual completo para proyectos narrativos y cómics originales, aportando siempre una dirección artística sólida.',
       outcome: 'Piezas ilustradas y arte conceptual de calidad profesional, listas para producción.',
     },
     en: {
-      title: 'Illustration & Concept Art',
+      title: 'Illustration & concept art',
       discipline: ['Digital Illustration', 'Concept Art', 'Visual Development'],
       summary:
         'I have experience creating digital illustrations and concept art with a high level of detail and a professional finish. I cover everything from character and environment design to complete visual development for narrative projects and original comics, always providing a solid artistic direction.',

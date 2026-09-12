@@ -15,7 +15,7 @@ export const site = {
   email: 'juanpablos196@gmail.com',
   phone: '+57 318 482 1317',
   phoneHref: '+573184821317',
-  url: 'https://juanpablosierra.com',
+  url: 'https://juansxt.com',
   timezone: 'GMT-5',
   yearsExperience: 7,
   ogImage: '/media/og.png',

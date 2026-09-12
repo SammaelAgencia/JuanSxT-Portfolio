@@ -83,6 +83,17 @@ const schema = {
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
+    {/* Las tres caras que salen por encima del pliegue. Sin esto el navegador
+        no sabe que existen hasta haber leído el CSS y calculado el primer
+        layout, que es media cadena crítica de retraso. La mono se queda fuera
+        a propósito: son etiquetas pequeñas y el `swap` no se nota.
+        `crossorigin` no es opcional aunque el archivo sea nuestro: las fuentes
+        se piden siempre en modo CORS, y una precarga sin él se descarta y el
+        archivo se baja dos veces. */}
+    <link rel="preload" href="/fonts/titulos.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/parrafos.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/enfasis.woff2" as="font" type="font/woff2" crossorigin />
+
     <meta property="og:type" content="website" />
     <meta property="og:locale" content={langMeta[lang].og} />
     <meta property="og:site_name" content={site.name} />

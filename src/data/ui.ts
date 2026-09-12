@@ -46,10 +46,10 @@ const es = {
   work: {
     label: 'Trabajo seleccionado',
     projects: 'proyectos',
-    span: '2021 — 2026',
+    span: '2017 — 2026',
     open: 'Ver proyecto',
     cursor: 'Ver',
-    note: 'El detalle de cada proyecto va bajo NDA en varios casos. Lo enseño en llamada.',
+    note: 'Cada ficha resume un área de trabajo. Los archivos, las versiones y el porqué de cada decisión los enseño en llamada.',
     cta: 'Pedir el portafolio completo',
     /** Escena a pantalla completa. */
     back: 'Volver',
@@ -125,10 +125,10 @@ const en: typeof es = {
   work: {
     label: 'Selected work',
     projects: 'projects',
-    span: '2021 — 2026',
+    span: '2017 — 2026',
     open: 'View project',
     cursor: 'View',
-    note: 'Several of these are under NDA in detail. I walk through them on a call.',
+    note: 'Each card sums up one area of work. The files, the iterations and the reasoning behind every decision I walk through on a call.',
     cta: 'Ask for the full portfolio',
     back: 'Back',
     shot: 'image',

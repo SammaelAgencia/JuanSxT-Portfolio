@@ -48,13 +48,15 @@ src/
 │
 ├─ styles/
 │  ├─ index.css           punto de entrada; el ORDEN de los @import importa
+│  │                      SÓLO lo que usa la portada: pokemon.css no está
 │  ├─ tokens.css          ← variables de diseño
-│  ├─ fonts.css           tipografías auto-alojadas (Fontsource)
+│  ├─ fonts.css           las cuatro tipografías auto-alojadas
 │  ├─ reset.css  base.css  utilities.css  animations.css
 │  ├─ components/         intro, cursor, header, progressive-blur, button,
 │  │                      label, media, marquee, footer, scene, slider
 │  └─ sections/           hero, manifesto, work, services, process,
 │                         trajectory, toolkit, contact, pokemon
+│                         (pokemon.css lo importa pages/pokemon.astro)
 │
 ├─ scripts/               TypeScript de navegador
 │  ├─ env.ts              media queries + ÚNICO bucle rAF compartido
@@ -81,13 +83,35 @@ src/
 └─ pages/
    ├─ index.astro         portada en español
    ├─ en/index.astro      portada en inglés
-   └─ pokemon.astro       página interna, sin nav y con noindex
+   ├─ pokemon.astro       página interna, sin nav y con noindex
+   └─ sitemap.xml.ts      sitemap generado en el build desde `langs`
 ```
 
 ## Reglas de rendimiento que no se rompen
 
+- **Ninguna hoja de estilos bloquea el primer pintado.** `inlineStylesheets:
+  'always'` mete el CSS dentro del HTML: el navegador no tiene que descubrir
+  un `<link>`, abrir otra petición y esperar a que vuelva para pintar. El
+  precio es que ese CSS no se comparte entre páginas, y por eso **el índice de
+  estilos sólo lleva lo que usa la portada**. `sections/pokemon.css` son 20 kB
+  para una página interna a la que no se llega por enlace: lo importa
+  `pages/pokemon.astro` y no `styles/index.css`. Si añades una sección que sólo
+  vive en una página, hazlo igual.
 - **Un solo bucle `requestAnimationFrame`** para todo (`scripts/env.ts`). Si
   añades algo animado por puntero, regístralo con `onTick`, no crees otro rAF.
+  Lenis también va por ahí: `onTick` pasa `(dt, now)` justo para eso, y copiar
+  el `requestAnimationFrame` recursivo de su ejemplo deja dos bucles pidiendo
+  frames a la vez.
+- **Nada lee geometría mientras el bucle escribe.** Un `getBoundingClientRect`
+  —o un `offsetWidth`, o un `scrollY`— después de haber tocado estilos obliga
+  al navegador a recalcular el layout en medio del frame; con un listener de
+  scroll son decenas de recálculos por gesto. La regla práctica: mide **cuando
+  algo cambia de tamaño**, no cuando algo se mueve. El campo del hero guarda su
+  caja en coordenadas de documento y lee el puntero con `pageX`/`pageY`, que el
+  scroll no altera; los imanes miden al entrar el puntero y sólo vuelven a
+  medir si ha habido scroll de por medio. Y como `getBoundingClientRect`
+  devuelve la caja YA transformada, el imán se resta su propio desplazamiento
+  antes de guardarla: si no, se mide a sí mismo movido y se frena solo.
 - **La baraja de proyectos es `position: sticky` puro**, sin JavaScript. Las
   fichas son hermanas del mismo contenedor y cada una se ancla un escalón más
   abajo, así que se acumulan en vez de despegarse. Se ajusta con cinco
@@ -114,7 +138,11 @@ src/
 - **Un solo `IntersectionObserver`** para los revelados (`scripts/reveal.ts`).
   Marca el elemento con `data-reveal` y deja la forma de la animación al CSS.
 - **`preload="none"` en todo `<video>`.** La descarga arranca en el primer
-  hover real, nunca al cargar la página.
+  hover real, nunca al cargar la página, y ni siquiera entonces de inmediato:
+  hacen falta 140 ms de puntero quieto dentro de la ficha. Cruzar la baraja de
+  arriba abajo pasa por las cinco, y sin esa espera el gesto dispara cinco
+  descargas de vídeo que nadie pidió. Con el ahorro de datos del navegador
+  activado no se reproduce ninguno.
 - **`backdrop-filter` sólo en tres sitios, y los tres están medidos.** El
   primero es la banda de desenfoque progresivo (`ProgressiveBlur`), ocho capas
   apiladas que se recomponen en cada frame de scroll: por eso la banda es
@@ -175,7 +203,7 @@ src/
 ## Convención de movimiento
 
 Las palabras entre `*asteriscos*` en `SplitText` se renderizan en cursiva de
-acento (Instrument Serif, color brasa):
+acento (Gothicfed, `--f-serif`, color brasa):
 
 ```astro
 <SplitText as="h1" lines={['Diseño interfaces', 'que *se sostienen*']} />

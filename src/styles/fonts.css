@@ -4,10 +4,17 @@
      Salty Ages     → titulares            public/fonts/titulos.woff2
      Berkelium Sans → texto e interfaz     public/fonts/parrafos.woff2
      Gothicfed      → palabras acentuadas  public/fonts/enfasis.woff2
-     Geist Mono     → etiquetas, cifras y meta. Sigue viniendo de Fontsource,
-                      que trae `unicode-range` y así sólo baja el latino.
+     Geist Mono     → etiquetas y cifras   public/fonts/mono.woff2
 
-   Las tres propias son ESTÁTICAS, de un único peso.
+   Las cuatro son ESTÁTICAS, de un único peso.
+
+   La mono venía de Fontsource, que trae los nueve subconjuntos del alfabeto
+   con su `unicode-range`. Sólo bajaba el latino —el resto nunca se pedía—
+   pero los nueve archivos viajaban al servidor y las nueve reglas viajaban en
+   el CSS de todas las páginas. El sitio está en español e inglés: se copió el
+   archivo latino a /public/fonts y se declara aquí como las otras tres. Un
+   `@font-face` en vez de nueve, un archivo publicado en vez de nueve, y una
+   dependencia menos que actualizar.
 
    `font-weight: 100 900` no las convierte en variables: le dice al navegador
    que esa cara cubre cualquier peso que le pidan. Sin ese rango, un
@@ -19,8 +26,11 @@
    Misma idea con `font-style: italic` en la de énfasis: el archivo no está
    inclinado, y declararlo así evita que el navegador lo incline él por su
    cuenta al encontrarse un <em>.
+
+   Las tres primeras se precargan desde `layouts/Base.astro`: están todas por
+   encima del pliegue y, sin la precarga, el navegador no las descubre hasta
+   haber leído el CSS y calculado el primer layout.
 ----------------------------------------------------------------------------- */
-@import '@fontsource-variable/geist-mono/wght.css';
 
 @font-face {
   font-family: 'Salty Ages';
@@ -43,5 +53,13 @@
   src: url('/fonts/enfasis.woff2') format('woff2');
   font-weight: 100 900;
   font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono Variable';
+  src: url('/fonts/mono.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
   font-display: swap;
 }

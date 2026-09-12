@@ -7,6 +7,15 @@
  *
  * También expone `--px` / `--py` normalizados (-1 a 1) en el contenedor,
  * que el CSS usa para el parallax de las capas del hero.
+ *
+ * NO SE MIDE NADA AL HACER SCROLL. La versión anterior llamaba a
+ * `getBoundingClientRect()` en cada evento de scroll para mantener fresco el
+ * origen del campo, y como el bucle rAF está escribiendo transforms al mismo
+ * tiempo, cada una de esas lecturas obligaba al navegador a recalcular el
+ * layout: es la «redistribución forzada» que salía en la auditoría. La caja se
+ * guarda en coordenadas de DOCUMENTO, que el scroll no cambia, y el puntero se
+ * lee en las mismas coordenadas (`pageX`/`pageY`). Así sólo hay que medir
+ * cuando el elemento cambia de tamaño de verdad.
  */
 import { onTick, lerp, finePointer, reduceMotion } from './env';
 
@@ -22,26 +31,46 @@ export function initField(): void {
     return;
   }
 
-  let rect = field.getBoundingClientRect();
-  let tx = rect.width / 2;
-  let ty = rect.height / 2;
+  /* Caja del campo en coordenadas del documento. `izq`/`arriba` sólo cambian
+     si algo se redimensiona, nunca al desplazarse. */
+  let ancho = 0;
+  let alto = 0;
+  let izq = 0;
+  let arriba = 0;
+
+  const medir = () => {
+    const r = field.getBoundingClientRect();
+    ancho = r.width;
+    alto = r.height;
+    izq = r.left + window.scrollX;
+    arriba = r.top + window.scrollY;
+  };
+
+  medir();
+
+  let tx = ancho / 2;
+  let ty = alto / 2;
   let cx = tx;
   let cy = ty;
   let active = false;
 
-  const measure = () => {
-    rect = field.getBoundingClientRect();
-  };
-
-  const ro = new ResizeObserver(measure);
+  const ro = new ResizeObserver(medir);
   ro.observe(field);
-  window.addEventListener('scroll', measure, { passive: true });
+
+  /* Y otra vez al llegar el puntero. La primera medida se toma en el arranque,
+     que cae dentro de la cortina de entrada: ahí `.page-shell` todavía lleva
+     el `scale(1.014)` del fundido, y `getBoundingClientRect` lo incluye
+     mientras que el `ResizeObserver` no se entera (informa de la caja de
+     layout, que una transformación no cambia). Medir al entrar es medir
+     cuando la escena ya está quieta, y es la única lectura extra que se hace. */
+  field.addEventListener('pointerenter', medir, { passive: true });
 
   field.addEventListener(
     'pointermove',
     (e) => {
-      tx = e.clientX - rect.left;
-      ty = e.clientY - rect.top;
+      // pageX/pageY ya vienen en coordenadas de documento: nada que medir.
+      tx = e.pageX - izq;
+      ty = e.pageY - arriba;
       if (!active) {
         active = true;
         cx = tx;
@@ -57,7 +86,11 @@ export function initField(): void {
     field.setAttribute('data-field-active', 'false');
   });
 
-  const stop = onTick((dt) => {
+  /* El bucle no se queda girando con el hero fuera de pantalla: se da de baja
+     y se vuelve a registrar al reaparecer, igual que hace el shader. */
+  let stop: (() => void) | null = null;
+
+  const paso = (dt: number) => {
     const t = Math.min(0.11 * dt, 1);
     cx = lerp(cx, tx, t);
     cy = lerp(cy, ty, t);
@@ -65,21 +98,36 @@ export function initField(): void {
     if (spot) spot.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`;
 
     // Normalizado para el parallax de las capas de texto.
-    const nx = rect.width ? (cx / rect.width) * 2 - 1 : 0;
-    const ny = rect.height ? (cy / rect.height) * 2 - 1 : 0;
+    const nx = ancho ? (cx / ancho) * 2 - 1 : 0;
+    const ny = alto ? (cy / alto) * 2 - 1 : 0;
     field.style.setProperty('--px', nx.toFixed(3));
     field.style.setProperty('--py', ny.toFixed(3));
-  });
+  };
 
-  // Si el hero sale de pantalla, el bucle se apaga.
+  const arrancar = () => {
+    if (!stop) stop = onTick(paso);
+  };
+
+  const parar = () => {
+    stop?.();
+    stop = null;
+  };
+
+  arrancar();
+
   const io = new IntersectionObserver(
-    ([entry]) => field.toggleAttribute('data-field-idle', !entry?.isIntersecting),
+    ([entry]) => {
+      const fuera = !entry?.isIntersecting;
+      field.toggleAttribute('data-field-idle', fuera);
+      if (fuera) parar();
+      else arrancar();
+    },
     { threshold: 0 },
   );
   io.observe(field);
 
   window.addEventListener('pagehide', () => {
-    stop();
+    parar();
     ro.disconnect();
     io.disconnect();
   });

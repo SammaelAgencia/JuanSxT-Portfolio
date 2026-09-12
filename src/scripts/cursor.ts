@@ -99,6 +99,24 @@ export function initCursor(): void {
 /**
  * Imán: el elemento se desplaza hacia el puntero dentro de un radio.
  * Se aplica con `data-magnetic` (opcionalmente `data-magnetic-strength`).
+ *
+ * El centro se mide sólo cuando hace falta —al entrar el puntero, y después
+ * únicamente si ha habido scroll de por medio—, no en cada frame del gesto.
+ * Antes se medía siempre, y eso tenía dos problemas.
+ *
+ * El barato: una lectura de layout por frame mientras el bucle compartido
+ * está escribiendo transforms, que es exactamente la redistribución forzada
+ * que salía en la auditoría.
+ *
+ * El caro: `getBoundingClientRect` devuelve la caja YA transformada, así que
+ * el imán se medía a sí mismo desplazado y se frenaba solo; la fuerza real
+ * acababa siendo `strength / (1 + strength)` en vez de la declarada. Por eso
+ * `medir` resta el desplazamiento que él mismo escribió: lo que queda es la
+ * caja en reposo, y entonces da igual en qué momento se mida.
+ *
+ * Se queda en coordenadas de ventana a propósito. El CTA de la cabecera vive
+ * dentro de un `position: fixed`, y para él las coordenadas de documento no
+ * significan nada: se separaría del puntero en cuanto se hiciera scroll.
  */
 export function initMagnets(): void {
   if (!finePointer() || reduceMotion()) return;
@@ -106,29 +124,50 @@ export function initMagnets(): void {
   const magnets = document.querySelectorAll<HTMLElement>('[data-magnetic]');
   if (!magnets.length) return;
 
+  /* Un único listener de scroll para todos los imanes, y no lee nada: sólo
+     marca que las cajas guardadas han dejado de valer. */
+  let sello = 0;
+  window.addEventListener('scroll', () => { sello += 1; }, { passive: true });
+
   magnets.forEach((el) => {
     const strength = Number(el.dataset.magneticStrength ?? 0.32);
     let raf = 0;
+    let cx = 0;
+    let cy = 0;
+    let mx = 0;
+    let my = 0;
+    let medido = -1;
+
+    const medir = () => {
+      const r = el.getBoundingClientRect();
+      // La caja viene con el translate del propio imán: se le descuenta.
+      cx = r.left + r.width / 2 - mx;
+      cy = r.top + r.height / 2 - my;
+      medido = sello;
+    };
 
     const move = (e: PointerEvent) => {
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
-        const r = el.getBoundingClientRect();
-        const dx = (e.clientX - (r.left + r.width / 2)) * strength;
-        const dy = (e.clientY - (r.top + r.height / 2)) * strength;
-        el.style.setProperty('--mx', `${dx.toFixed(2)}px`);
-        el.style.setProperty('--my', `${dy.toFixed(2)}px`);
+        if (medido !== sello) medir();
+        mx = (e.clientX - cx) * strength;
+        my = (e.clientY - cy) * strength;
+        el.style.setProperty('--mx', `${mx.toFixed(2)}px`);
+        el.style.setProperty('--my', `${my.toFixed(2)}px`);
       });
     };
 
     const reset = () => {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
+      mx = 0;
+      my = 0;
       el.style.setProperty('--mx', '0px');
       el.style.setProperty('--my', '0px');
     };
 
+    el.addEventListener('pointerenter', () => { medido = -1; }, { passive: true });
     el.addEventListener('pointermove', move, { passive: true });
     el.addEventListener('pointerleave', reset, { passive: true });
     el.addEventListener('blur', reset);

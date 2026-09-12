@@ -1,2 +1,7 @@
 User-agent: *
 Allow: /
+
+# La página del torneo es interna: lleva noindex y no se rastrea.
+Disallow: /pokemon
+
+Sitemap: https://juansxt.com/sitemap.xml

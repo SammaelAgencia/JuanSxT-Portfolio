@@ -1,4 +1,10 @@
 ---
+/* Los estilos del torneo se importan AQUÍ y no en `styles/index.css`: son
+   20 kB para una página interna a la que no se llega por enlace, y el índice
+   de estilos lo carga el sitio entero de forma bloqueante. Astro los mete en
+   el bundle de esta página y de ninguna otra. No es un bloque <style>: sigue
+   siendo un archivo de `styles/sections/`, sólo que con un dueño. */
+import '@styles/sections/pokemon.css';
 import Base from '@layouts/Base.astro';
 import SplitText from '@components/ui/SplitText.astro';
 import MediaSlot from '@components/ui/MediaSlot.astro';

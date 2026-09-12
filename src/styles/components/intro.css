@@ -11,7 +11,12 @@
   color: var(--c-bone);
   pointer-events: none;
   clip-path: inset(0 0 0 0);
-  transition: clip-path 900ms var(--e-inout) 120ms;
+  /* Este tiempo es LCP puro: hasta que la cortina no sube, el contenido está
+     a `opacity: 0` y para el navegador no se ha pintado nada. Se recortó de
+     900ms/120ms a 720ms/40ms —el gesto se lee igual y la medición empieza
+     casi medio segundo antes—. Si lo vuelves a subir, sube también el
+     presupuesto de LCP. */
+  transition: clip-path 720ms var(--e-inout) 40ms;
 }
 
 .intro__mark {
@@ -72,9 +77,11 @@
 .page-shell {
   transform: scale(1.014);
   opacity: 0;
+  /* Mismo motivo que arriba: el fundido del contenido va detrás de la cortina
+     y es lo último que separa al usuario de la primera línea legible. */
   transition:
-    transform 1100ms var(--e-out) 200ms,
-    opacity 700ms var(--e-out) 200ms;
+    transform 800ms var(--e-out) 80ms,
+    opacity 480ms var(--e-out) 80ms;
 }
 
 [data-intro-done] .page-shell,

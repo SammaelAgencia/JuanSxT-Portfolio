@@ -9,6 +9,11 @@
      animations  fotogramas clave y primitivas de revelado
      components  piezas reutilizables
      sections    bloques concretos de la página
+
+   Aquí SÓLO va lo que usa la portada. `sections/pokemon.css` no está en la
+   lista a propósito: son 20 kB para una página interna a la que no se llega
+   por enlace, y este archivo lo carga el sitio entero de forma bloqueante.
+   Lo importa `pages/pokemon.astro`, que es quien lo necesita.
 ----------------------------------------------------------------------------- */
 @import './fonts.css';
 @import './tokens.css';
@@ -37,4 +42,3 @@
 @import './sections/trajectory.css';
 @import './sections/toolkit.css';
 @import './sections/contact.css';
-@import './sections/pokemon.css';

@@ -26,7 +26,9 @@ export function initIntro(): void {
 
   const counter = intro.querySelector<HTMLElement>('[data-intro-count]');
   const started = performance.now();
-  const MIN = 900;
+  /* Suelo del contador. Es el otro tramo de LCP que se controla desde aquí:
+     nada se puede pintar antes de que pasen estos milisegundos. */
+  const MIN = 550;
   let value = 0;
 
   const tick = () => {
@@ -34,7 +36,10 @@ export function initIntro(): void {
     value += Math.max(0.6, (100 - value) * 0.06);
     const shown = Math.min(100, Math.floor(value));
     if (counter) counter.textContent = String(shown).padStart(3, '0');
-    root.style.setProperty('--intro-progress', String(shown / 100));
+    /* La variable se escribe en la cortina, no en <html>. Tocar una propiedad
+       personalizada del elemento raíz invalida el estilo del documento entero
+       en cada frame, y sólo la leen dos hijos de la propia cortina. */
+    intro.style.setProperty('--intro-progress', String(shown / 100));
 
     const elapsed = performance.now() - started;
     if (shown >= 100 && elapsed >= MIN && document.readyState !== 'loading') {
@@ -178,29 +183,54 @@ export function initCopy(): void {
 /* ------------------------------------------------------- CLIPS EN FICHA --
    Los <video> de los proyectos van con preload="none": no pesan nada hasta
    que el puntero entra en su ficha. En táctil ni se activa: allí manda la
-   imagen fija, que es lo correcto cuando no hay hover.                      */
+   imagen fija, que es lo correcto cuando no hay hover.
+
+   Dos frenos antes de disparar la descarga:
+
+   · INTENCIÓN. Se esperan 140 ms con el puntero dentro. Cruzar la baraja de
+     arriba abajo pasa por las cinco fichas, y sin esta espera ese gesto
+     arranca cinco descargas de vídeo que nadie pidió. Quien de verdad se
+     para en una ficha no nota el retraso.
+   · AHORRO DE DATOS. Si el navegador dice que el usuario lo tiene activado,
+     el clip no se reproduce nunca y se queda la imagen fija. Un vídeo
+     decorativo es justo lo primero que esa preferencia quiere evitar.       */
+interface ConexionAhorro {
+  saveData?: boolean;
+}
+
 export function initCardMotion(): void {
   if (!window.matchMedia('(pointer: fine)').matches) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+  const conexion = (navigator as Navigator & { connection?: ConexionAhorro }).connection;
+  if (conexion?.saveData) return;
+
   const slots = document.querySelectorAll<HTMLElement>('.slot[data-motion]');
   if (!slots.length) return;
+
+  /** Cuánto hay que quedarse quieto en una ficha para que valga la pena. */
+  const INTENCION = 140;
 
   slots.forEach((slot) => {
     const video = slot.querySelector('video');
     if (!video) return;
 
+    let espera = 0;
+
     slot.addEventListener(
       'pointerenter',
       () => {
-        // La descarga arranca exactamente aquí, no antes.
-        if (video.preload !== 'auto') video.preload = 'auto';
-        void video
-          .play()
-          .then(() => slot.setAttribute('data-playing', ''))
-          .catch(() => {
-            /* Sin archivo o autoplay bloqueado: se queda la imagen fija. */
-          });
+        window.clearTimeout(espera);
+        espera = window.setTimeout(() => {
+          // La descarga arranca exactamente aquí, no antes.
+          if (video.preload !== 'auto') video.preload = 'auto';
+          void video
+            .play()
+            .then(() => slot.setAttribute('data-playing', ''))
+            .catch(() => {
+              /* Sin archivo o autoplay bloqueado: se queda la imagen fija. */
+            });
+        }, INTENCION);
       },
       { passive: true },
     );
@@ -208,6 +238,7 @@ export function initCardMotion(): void {
     slot.addEventListener(
       'pointerleave',
       () => {
+        window.clearTimeout(espera);
         video.pause();
         slot.removeAttribute('data-playing');
       },
