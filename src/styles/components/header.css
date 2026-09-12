@@ -1,0 +1,342 @@
+/* Cabecera fija. Se esconde al bajar, vuelve al subir. */
+
+.header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: var(--z-nav);
+  padding-block: clamp(0.9rem, 1.6vw, 1.4rem);
+  /* Sólo el escondite. La barra ya no cambia de fondo: quien tiene
+     superficie es la cápsula. */
+  transition: transform 520ms var(--e-inout);
+}
+
+.header[data-hidden] { transform: translate3d(0, -110%, 0); }
+
+/* La barra no lleva fondo ni `backdrop-filter` a lo ancho: eso volvería a
+   meter el corte duro en el borde inferior que la banda de desenfoque
+   progresivo existe para evitar. Quien se despega del fondo es la cápsula de
+   la navegación (`.nav__pod`), y ahí el desenfoque cuesta lo que mide una
+   píldora, no una banda de lado a lado. */
+
+.header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+}
+
+/* --- Marca ------------------------------------------------------------- */
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  font-family: var(--f-display);
+  font-size: 1.05rem;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.02em;
+}
+
+.brand__sup {
+  font-family: var(--f-mono);
+  font-size: 0.5625rem;
+  letter-spacing: var(--ls-meta);
+  color: var(--c-bone-mute);
+  text-transform: uppercase;
+}
+
+/* --- Navegación de escritorio ------------------------------------------ */
+.nav {
+  display: none;
+  /* `stretch` y no `center`: las tres piezas de la barra —cápsula, selector de
+     idioma y botón— toman el alto de la más alta, así que quedan iguales sin
+     que haya que escribir una altura a mano en ninguna. */
+  align-items: stretch;
+  gap: clamp(0.5rem, 1.2vw, 0.9rem);
+}
+
+/* --- Cápsula de cristal -------------------------------------------------
+   El único `backdrop-filter` de la cabecera. Sale barato porque sólo cubre la
+   píldora —unos 46 px de alto—, no una banda de lado a lado.
+
+   Las columnas son IGUALES a propósito. Con un ancho fijo por casilla el
+   pulgar no tiene nada que medir —ni JS, ni `ResizeObserver`— y se mueve
+   trasladándose un ancho por posición, que es lo único que se puede animar.
+   `--pod-items` lo pone la maqueta contando `nav` en `data/site.ts`, así que
+   la cápsula sigue cuadrando si la nav crece; lo que sí habría que ampliar
+   entonces es la escalera de `--pod-i` de aquí abajo.                      */
+.nav__pod {
+  --pod-pad: 0.3rem;
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  align-items: center;
+  padding: var(--pod-pad);
+  border-radius: var(--r-pill);
+  background: var(--c-glass);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  isolation: isolate;
+}
+
+/* El pulgar. `z-index: -1` lo deja encima del fondo de la cápsula y debajo de
+   los enlaces, sin salirse del apilado que `.nav__pod` ya aísla. */
+.nav__glider {
+  position: absolute;
+  z-index: -1;
+  top: var(--pod-pad);
+  bottom: var(--pod-pad);
+  left: var(--pod-pad);
+  width: calc((100% - var(--pod-pad) * 2) / var(--pod-items, 4));
+  border-radius: var(--r-pill);
+  background: var(--c-glass-thumb);
+  box-shadow: var(--shadow-glass-thumb);
+  opacity: 0;
+  transform: translate3d(calc(var(--pod-i, 0) * 100%), 0, 0);
+  transition:
+    transform 560ms var(--e-inout),
+    opacity 260ms var(--e-out);
+}
+
+/* Arriba del todo no hay sección activa, así que el pulgar no existe hasta
+   que alguien lo reclama: el observador de `scripts/chrome.ts` o el puntero. */
+.nav__pod:has([data-current]) .nav__glider,
+.nav__pod:hover .nav__glider,
+.nav__pod:focus-within .nav__glider { opacity: 1; }
+
+.nav__pod:has(.nav__link:nth-of-type(1)[data-current]) { --pod-i: 0; }
+.nav__pod:has(.nav__link:nth-of-type(2)[data-current]) { --pod-i: 1; }
+.nav__pod:has(.nav__link:nth-of-type(3)[data-current]) { --pod-i: 2; }
+.nav__pod:has(.nav__link:nth-of-type(4)[data-current]) { --pod-i: 3; }
+
+/* Mientras el puntero está encima, manda él sobre la sección activa. El
+   `:is()` de la cápsula está para igualar la especificidad: sin él estas
+   reglas pesan menos que las de `[data-current]` y no llegarían a aplicarse. */
+.nav__pod:is(:hover, :focus-within):has(.nav__link:nth-of-type(1):is(:hover, :focus-visible)) { --pod-i: 0; }
+.nav__pod:is(:hover, :focus-within):has(.nav__link:nth-of-type(2):is(:hover, :focus-visible)) { --pod-i: 1; }
+.nav__pod:is(:hover, :focus-within):has(.nav__link:nth-of-type(3):is(:hover, :focus-visible)) { --pod-i: 2; }
+.nav__pod:is(:hover, :focus-within):has(.nav__link:nth-of-type(4):is(:hover, :focus-visible)) { --pod-i: 3; }
+
+/* Sin `:has()` no hay pulgar, pero el enlace activo se sigue leyendo: ni el
+   color ni la brasa del índice dependen de él. */
+@supports not selector(:has(*)) {
+  .nav__glider { display: none; }
+}
+
+/* Sin `backdrop-filter` el cristal cae a una superficie opaca, que es justo
+   lo que la cápsula tiene que hacer de todas formas: separar del fondo. */
+@supports not (backdrop-filter: blur(1px)) {
+  .nav__pod { background: var(--c-glass-solid); }
+}
+
+.nav__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.05rem;
+  border-radius: var(--r-pill);
+  font-size: var(--t-small);
+  color: var(--c-bone-soft);
+  white-space: nowrap;
+  transition: color var(--d-fast) var(--e-out);
+}
+
+.nav__link i {
+  font-family: var(--f-mono);
+  font-size: 0.5625rem;
+  font-style: normal;
+  letter-spacing: var(--ls-meta);
+  color: var(--c-bone-mute);
+  transition: color var(--d-fast) var(--e-out);
+}
+
+.nav__link:hover,
+.nav__link:focus-visible { color: var(--c-bone); }
+.nav__link:hover i,
+.nav__link:focus-visible i { color: var(--c-ember); }
+
+.nav__link[data-current] { color: var(--c-bone); }
+.nav__link[data-current] i { color: var(--c-ember); }
+
+/* --- Selector de idioma -------------------------------------------------
+   Dos enlaces a dos páginas reales, no un interruptor. El activo se marca con
+   `aria-current`, que es lo que ya distingue a un lector de pantalla: el
+   estilo se cuelga de ese mismo atributo en vez de una clase paralela.
+
+   En escritorio va dentro de la barra, entre la cápsula y el botón; en móvil
+   la nav no existe, así que el mismo bloque se repite en el pie del panel de
+   menú y allí sólo cambia de tamaño.                                       */
+.lang {
+  --pod-pad: 0.3rem;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.15rem;
+  /* El mismo relleno que `.nav__pod`: con el alto que reparte la barra, las
+     dos píldoras salen idénticas por construcción. */
+  padding: var(--pod-pad);
+  border-radius: var(--r-pill);
+  background: var(--c-glass);
+  box-shadow: var(--shadow-glass-thumb);
+}
+
+.lang__link {
+  display: grid;
+  place-items: center;
+  padding-inline: 0.7rem;
+  border-radius: var(--r-pill);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+  transition: color var(--d-fast) var(--e-out), background-color var(--d-fast) var(--e-out);
+}
+
+.lang__link:hover,
+.lang__link:focus-visible { color: var(--c-bone); }
+
+.lang__link[aria-current] {
+  color: var(--c-bone);
+  background: var(--c-glass-thumb);
+  box-shadow: var(--shadow-glass-thumb);
+}
+
+/* En el pie del menú el cristal sobra: ahí el fondo ya es una superficie. */
+.menu__foot .lang {
+  align-items: center;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  gap: var(--sp-2xs);
+}
+
+.menu__foot .lang__link { padding: 0.2rem 0.4rem; }
+
+/* --- Botón de menú (móvil) --------------------------------------------- */
+.menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone);
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--r-pill);
+  /* El mismo cristal de la cápsula, pero sin `backdrop-filter`: esto sólo se
+     ve por debajo de 900 px, y ahí un desenfoque que se recompone en cada
+     frame de scroll no compensa. La superficie ya separa del fondo. */
+  background: var(--c-glass);
+  box-shadow: var(--shadow-glass);
+}
+
+.menu-toggle__glyph {
+  position: relative;
+  width: 14px;
+  height: 9px;
+}
+.menu-toggle__glyph::before,
+.menu-toggle__glyph::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transition: transform 380ms var(--e-inout);
+}
+.menu-toggle__glyph::before { top: 0; }
+.menu-toggle__glyph::after { bottom: 0; }
+
+.menu-toggle[aria-expanded='true'] .menu-toggle__glyph::before {
+  transform: translateY(4px) rotate(45deg);
+}
+.menu-toggle[aria-expanded='true'] .menu-toggle__glyph::after {
+  transform: translateY(-4px) rotate(-45deg);
+}
+
+@media (min-width: 900px) {
+  .nav { display: flex; }
+  .menu-toggle { display: none; }
+}
+
+/* --- Panel de menú ----------------------------------------------------- */
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-nav) - 1);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: var(--sp-lg);
+  padding: calc(var(--gutter) * 2 + 2rem) var(--gutter) var(--gutter);
+  background: var(--c-ink-sink);
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 620ms var(--e-inout);
+  visibility: hidden;
+}
+
+.menu[data-open] {
+  clip-path: inset(0 0 0 0);
+  visibility: visible;
+}
+
+[data-menu-open] { overflow: hidden; }
+
+.menu__list { display: flex; flex-direction: column; justify-content: center; }
+
+.menu__item {
+  border-block-start: var(--bw) solid var(--c-line);
+}
+.menu__item:last-child { border-block-end: var(--bw) solid var(--c-line); }
+
+.menu__link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-sm);
+  padding-block: clamp(0.9rem, 3.2vw, 1.4rem);
+  font-family: var(--f-display);
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  font-weight: var(--w-bold);
+  letter-spacing: var(--ls-tight);
+  line-height: 1;
+  opacity: 0;
+  transform: translate3d(0, 1rem, 0);
+  transition: opacity 460ms var(--e-out), transform 460ms var(--e-out);
+  transition-delay: calc(var(--i, 0) * 55ms + 140ms);
+}
+
+.menu[data-open] .menu__link { opacity: 1; transform: none; }
+
+.menu__link i {
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  font-style: normal;
+  letter-spacing: var(--ls-meta);
+  color: var(--c-ember);
+}
+
+.menu__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm) var(--sp-lg);
+  justify-content: space-between;
+  color: var(--c-bone-mute);
+}
+
+@media (min-width: 900px) {
+  .menu { display: none; }
+}
+
+/* --- Movimiento reducido ------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .nav__glider,
+  .menu__link { transition: none; }
+  .menu__link { transition-delay: 0s; }
+}

@@ -1,0 +1,98 @@
+/* -----------------------------------------------------------------------------
+   CARRUSEL DE LÁMINAS
+   Una tira con `scroll-snap`: el desplazamiento es del navegador, no de un
+   bucle de JavaScript. Los botones y los puntos sólo llaman a `scrollTo`.
+   Sin JS la tira sigue desplazándose con el dedo o con la rueda.
+----------------------------------------------------------------------------- */
+
+.slider {
+  position: relative;
+}
+
+.slider__track {
+  /* `position: relative` para que las láminas midan su `offsetLeft` contra la
+     tira: es lo que usa el script para saltar de una a otra sin medir anchos
+     ni tener que descontar el hueco entre ellas. */
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: var(--grid-gap);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* El foco del teclado necesita ver la lámina entera, no recortada. */
+  scroll-padding-inline: 0;
+}
+
+.slider__track::-webkit-scrollbar { display: none; }
+
+.slider__slide {
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+.slider__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  margin-block-start: var(--sp-md);
+}
+
+.slider__arrow {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  aspect-ratio: 1;
+  border: var(--bw) solid var(--c-line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--c-bone-soft);
+  font-size: var(--t-small);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color var(--d-fast) var(--e-out),
+    border-color var(--d-fast) var(--e-out),
+    opacity var(--d-fast) var(--e-out);
+}
+
+.slider__arrow:hover:not(:disabled) { color: var(--c-bone); border-color: var(--c-line-strong); }
+.slider__arrow:disabled { opacity: 0.3; cursor: default; }
+
+.slider__dots {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.slider__dot {
+  display: block;
+  width: 1.5rem;
+  height: 3px;
+  border: 0;
+  border-radius: var(--r-pill);
+  padding: 0;
+  background: var(--c-line-strong);
+  cursor: pointer;
+  /* El punto activo se estira en escala: nada de animar `width`. */
+  transform-origin: center;
+  transition:
+    background-color var(--d-fast) var(--e-out),
+    transform var(--d-base) var(--e-out);
+}
+
+.slider__dot[aria-current='true'] {
+  background: var(--c-ember);
+  transform: scaleX(1.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slider__track { scroll-behavior: auto; }
+  .slider__dot { transition: none; }
+}

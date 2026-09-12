@@ -1,0 +1,23 @@
+Tipografías auto-alojadas. Sólo .woff2: es lo que sirve el sitio.
+
+  titulos.woff2    Salty Ages       → --f-display
+  parrafos.woff2   Berkelium Sans   → --f-sans
+  enfasis.woff2    Gothicfed        → --f-serif (palabras entre *asteriscos*)
+
+Las declara src/styles/fonts.css y las nombra src/styles/tokens.css.
+La mono (Geist Mono) no vive aquí: viene del paquete de Fontsource.
+
+Los archivos de origen (.otf/.ttf) están en /fuentes-originales, fuera de
+public para que no se publiquen: pesan dos o tres veces lo mismo.
+
+SI AÑADES MÁS PESOS
+-------------------
+Las tres caras actuales son estáticas y traen un único peso, así que ahora
+mismo un 500 y un 800 del CSS se ven idénticos. Si consigues más pesos,
+déjalos como titulos-700.woff2, parrafos-500.woff2, etc. y añade un
+@font-face por archivo con su font-weight exacto, quitando el rango
+`100 900` de la cara base.
+
+CONVERSIÓN
+----------
+Si sólo tienes .otf o .ttf, déjalos en /fuentes-originales y se convierten.

@@ -1,0 +1,51 @@
+/* -----------------------------------------------------------------------------
+   MANIFIESTO
+   Un solo párrafo grande que se enciende palabra por palabra con el scroll,
+   centrado en mitad de la sección. Sin tarjetas, sin iconos de relleno.
+----------------------------------------------------------------------------- */
+
+.manifesto {
+  position: relative;
+  overflow: hidden;
+  /* El párrafo va centrado también en vertical, y para eso la sección necesita
+     un alto propio: sin sobrante que repartir, `align-content` no mueve nada.
+     `svh` y no `vh` para que la barra del navegador móvil no lo empuje. */
+  display: grid;
+  align-content: center;
+  min-block-size: 60svh;
+}
+
+.manifesto .ghost-num {
+  top: calc(var(--section-y) * 0.2);
+  right: calc(var(--gutter) * -0.4);
+}
+
+.manifesto__text {
+  position: relative;
+  z-index: 1;
+  /* SplitText en modo palabras trae `display: inline` (animations.css), y sobre
+     una caja en línea no aplican ni la medida ni el centrado. */
+  display: block;
+  /* La medida se da en `ch`: crece con el propio tamaño de letra, así que el
+     párrafo conserva el mismo número de líneas en toda la escala fluida. */
+  max-inline-size: 42ch;
+  margin-inline: auto;
+  margin-block-start: clamp(2rem, 4.5vw, 3.5rem);
+  font-family: var(--f-display);
+  font-size: var(--t-h1);
+  font-weight: var(--w-medium);
+  line-height: 1.08;
+  letter-spacing: var(--ls-tight);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.manifesto__text em {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: var(--w-book);
+  color: var(--c-ember);
+  /* Compensación óptica y su interlineado neutro: ver --t-em en tokens.css. */
+  font-size: var(--t-em);
+  line-height: 0;
+}

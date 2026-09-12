@@ -1,0 +1,37 @@
+---
+/**
+ * Cinta en bucle. El contenido se duplica en el build y el CSS lo desplaza
+ * -50%: el bucle es exacto sin medir nada en el navegador.
+ * La copia va con aria-hidden para que el lector de pantalla no repita.
+ */
+interface Props {
+  items: readonly string[];
+  speed?: number;
+  reverse?: boolean;
+  tilt?: boolean;
+  class?: string;
+}
+const { items, speed = 34, reverse = false, tilt = false, class: className } = Astro.props;
+---
+
+<div
+  class:list={['marquee', tilt && 'marquee--tilt', reverse && 'marquee--reverse', className]}
+  style={`--marquee-speed:${speed}s`}
+>
+  <div class="marquee__track">
+    {
+      [0, 1].map((copy) => (
+        <div class="marquee__group" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {items.map((item) => (
+            <span class="marquee__item">
+              {item}
+              <span class="marquee__sep" aria-hidden="true">
+                ·
+              </span>
+            </span>
+          ))}
+        </div>
+      ))
+    }
+  </div>
+</div>

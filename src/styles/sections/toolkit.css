@@ -1,0 +1,40 @@
+/* -----------------------------------------------------------------------------
+   CAJA DE HERRAMIENTAS
+   Cuatro columnas de etiquetas. Sin iconos de marca: los logos de terceros
+   envejecen mal y llenan la página de imágenes que nadie mira.
+----------------------------------------------------------------------------- */
+
+.toolkit { position: relative; }
+
+.toolkit__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: clamp(1.5rem, 3vw, 3rem);
+  margin-block-start: clamp(2rem, 5vw, 3.5rem);
+}
+
+.toolkit__col { display: grid; align-content: start; gap: 0.6rem; }
+
+.toolkit__col > p {
+  padding-block-end: 0.7rem;
+  margin-block-end: 0.3rem;
+  border-block-end: var(--bw) solid var(--c-line-strong);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-ember);
+}
+
+.toolkit__item {
+  position: relative;
+  padding-block: 0.35rem;
+  font-size: var(--t-small);
+  color: var(--c-bone-soft);
+  transition: color 320ms var(--e-out), transform 420ms var(--e-out);
+}
+
+.toolkit__item:hover {
+  color: var(--c-bone);
+  transform: translate3d(0.35rem, 0, 0);
+}

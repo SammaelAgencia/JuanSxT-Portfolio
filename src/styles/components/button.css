@@ -1,0 +1,139 @@
+/* Botones y enlaces con carácter. El relleno entra desde abajo al pasar. */
+
+.btn {
+  --btn-fg: var(--c-ink);
+  --btn-bg: var(--c-bone);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--r-pill);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-size: var(--t-small);
+  font-weight: var(--w-medium);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  isolation: isolate;
+  transform: translate3d(var(--mx, 0), var(--my, 0), 0);
+  transition: transform 620ms var(--e-out), color 320ms var(--e-out);
+  white-space: nowrap;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--c-ember);
+  transform: translate3d(0, 101%, 0);
+  transition: transform 520ms var(--e-inout);
+}
+
+.btn:hover,
+.btn:focus-visible { color: var(--c-bone); }
+.btn:hover::before,
+.btn:focus-visible::before { transform: none; }
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--c-bone);
+  box-shadow: inset 0 0 0 var(--bw) var(--c-line-strong);
+}
+
+.btn--lg {
+  padding: 1.1rem 2rem;
+  font-size: var(--t-body);
+}
+
+.btn__arrow {
+  display: inline-block;
+  transition: transform 420ms var(--e-out);
+}
+.btn:hover .btn__arrow { transform: translate3d(3px, -3px, 0); }
+
+/* --- Enlace de texto con subrayado que rota ---------------------------- */
+.link {
+  position: relative;
+  display: inline-block;
+  color: inherit;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -0.1em;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform-origin: right;
+  transform: scaleX(1);
+  transition: transform 460ms var(--e-inout);
+}
+
+.link:hover::after,
+.link:focus-visible::after {
+  transform: scaleX(0);
+  transform-origin: right;
+}
+
+/* --- Enlace de texto que se subraya al entrar -------------------------- */
+.link--in::after { transform: scaleX(0); transform-origin: left; }
+.link--in:hover::after,
+.link--in:focus-visible::after { transform: scaleX(1); }
+
+/* --- Píldora de disponibilidad ----------------------------------------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.85rem 0.4rem 0.7rem;
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-soft);
+}
+
+.pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-lime);
+  animation: pulse-dot 2.4s var(--e-soft) infinite;
+}
+
+/* --- Botón de copiar --------------------------------------------------- */
+.copy {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.copy__flag {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.6rem);
+  translate: -50% 0;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--r-sm);
+  background: var(--c-lime);
+  color: var(--c-ink);
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translate3d(0, 6px, 0);
+  transition: opacity 260ms var(--e-out), transform 320ms var(--e-spring);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+[data-copied] + .copy__flag,
+[data-copied] .copy__flag { opacity: 1; transform: none; }

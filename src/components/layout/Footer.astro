@@ -1,0 +1,30 @@
+---
+import { site, siteCopy } from '@data/site';
+import { ui } from '@data/ui';
+import { langOf, homePath, isHome } from '@i18n';
+
+const lang = langOf(Astro.url.pathname);
+const t = ui[lang];
+const year = new Date().getFullYear();
+
+/* Ver Header.astro: fuera de la portada el ancla se resuelve contra ella. */
+const inicio = isHome(Astro.url.pathname, lang) ? '#inicio' : `${homePath(lang)}#inicio`;
+---
+
+<footer class="footer" data-footer>
+  <div class="shell footer__bar">
+    <p class="footer__note">
+      © {year} <b>{site.name}</b>
+    </p>
+
+    <p class="footer__note">
+      {siteCopy[lang].location} · <span data-clock>—</span> {site.timezone}
+    </p>
+
+    <p class="footer__note">{t.footer.craft}</p>
+
+    <a class="footer__top" href={inicio} data-cursor-hint="link">
+      {t.footer.top} <span aria-hidden="true">↑</span>
+    </a>
+  </div>
+</footer>

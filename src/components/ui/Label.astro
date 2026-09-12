@@ -1,0 +1,15 @@
+---
+/** Rótulo de sección: índice, nombre y una regla que se dibuja al aparecer. */
+interface Props {
+  index: string;
+  name: string;
+  class?: string;
+}
+const { index, name, class: className } = Astro.props;
+---
+
+<div class:list={['label', className]} data-reveal data-inview="false">
+  <span class="label__index">{index}</span>
+  <span class="label__name">{name}</span>
+  <span class="label__rule" aria-hidden="true"></span>
+</div>

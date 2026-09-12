@@ -1,0 +1,713 @@
+/* -----------------------------------------------------------------------------
+   TORNEO  ·  página interna /pokemon
+
+   Dos bloques: el escenario —título y menú sobre el campo animado del hero— y
+   los paneles, que cuelgan debajo sobre fondo liso. El campo vive dentro del
+   escenario a propósito: así el fondo llega exactamente hasta el menú y no
+   sigue por debajo de las reglas, que son un texto largo.
+
+   El campo en sí (.field, .field__waves, .field__spot) se estila en
+   `hero.css`: aquí sólo se coloca y se recorta, no se vuelve a describir.
+----------------------------------------------------------------------------- */
+
+.torneo {
+  position: relative;
+  padding-block-end: var(--section-y);
+}
+
+/* ------------------------------------------------------------ ESCENARIO -- */
+
+.torneo__stage {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  /* El tope evita que en pantallas altas el centrado deje un colchón enorme
+     justo debajo del menú: pasado ese alto el escenario ya no crece. */
+  min-block-size: min(86svh, 40rem);
+  /* Deja pasar la cabecera por arriba, igual que el hero. */
+  padding-block: calc(var(--gutter) * 2 + 3rem) clamp(0.5rem, 1.25vw, 0.9rem);
+  overflow: hidden;
+  /* El campo va con z-index negativo: sin contexto propio se colaría por
+     detrás del fondo del documento y no se vería. */
+  isolation: isolate;
+  text-align: center;
+}
+
+/* El campo termina donde termina el escenario, o sea justo debajo del menú.
+   La máscara del hero disuelve en radial desde arriba; aquí se le añade el
+   corte suave del borde inferior para que no acabe en un canto duro. */
+.torneo__stage .field {
+  mask-image:
+    radial-gradient(130% 100% at 50% 0%, #000 45%, transparent 100%),
+    linear-gradient(to bottom, #000 74%, transparent 98%);
+  -webkit-mask-image:
+    radial-gradient(130% 100% at 50% 0%, #000 45%, transparent 100%),
+    linear-gradient(to bottom, #000 74%, transparent 98%);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+.torneo__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 64rem;
+}
+
+.torneo__eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  margin-block-end: clamp(1.25rem, 3vw, 2rem);
+  color: var(--c-bone-mute);
+}
+
+.torneo__title {
+  font-family: var(--f-display);
+  font-size: var(--t-d2);
+  font-weight: var(--w-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  text-transform: uppercase;
+  text-wrap: balance;
+  /* Micro-parallax con el puntero, como el titular del hero. Las variables
+     las escribe `field.ts` sobre el contenedor con [data-field]. */
+  transform: translate3d(calc(var(--px, 0) * -6px), calc(var(--py, 0) * -4px), 0);
+  transition: transform 900ms var(--e-out);
+}
+
+.torneo__title em {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: var(--w-book);
+  color: var(--c-ember);
+  /* La cursiva de acento no se pone en versales: en serif italic las
+     mayúsculas pierden justo el trazo que la distingue del título. */
+  text-transform: none;
+  /* Compensación óptica y su interlineado neutro: ver --t-em en tokens.css. */
+  font-size: var(--t-em);
+  line-height: 0;
+}
+
+.torneo__note {
+  max-width: 46ch;
+  margin-block-start: var(--sp-md);
+  color: var(--c-bone-soft);
+  font-size: var(--t-lead);
+  line-height: 1.42;
+  text-wrap: balance;
+}
+
+/* ------------------------------------------------------------- PESTAÑAS -- */
+
+.torneo__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2xs);
+  margin-block-start: clamp(2.25rem, 5vw, 3.5rem);
+}
+
+.torneo__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1.15rem;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--c-bone-mute);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  cursor: pointer;
+  /* Confina el relleno de la pestaña activa a este botón: el `z-index: -1`
+     de su capa se resuelve dentro y no se escapa por detrás del campo. */
+  isolation: isolate;
+  /* Escalonado del revelado: la primitiva ya lee esta variable. */
+  --reveal-delay: calc(320ms + var(--i, 0) * 70ms);
+  transition:
+    color var(--d-fast) var(--e-out),
+    border-color var(--d-fast) var(--e-out);
+}
+
+.torneo__tab i {
+  font-style: normal;
+  color: var(--c-ember);
+  transition: opacity var(--d-fast) var(--e-out);
+}
+
+.torneo__tab:hover { color: var(--c-bone); border-color: var(--c-line-strong); }
+
+/* Relleno de la pestaña activa. Va en una capa propia que se escala: pintar
+   el fondo del botón cambiaría de color en seco y no se puede transicionar
+   junto al resto sin repintar la píldora entera. */
+.torneo__tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--c-bone);
+  transform: scale(0.86);
+  opacity: 0;
+  transition:
+    transform var(--d-base) var(--e-spring),
+    opacity var(--d-fast) var(--e-out);
+}
+
+.torneo__tab[aria-selected='true'] {
+  color: var(--c-ink);
+  border-color: transparent;
+}
+.torneo__tab[aria-selected='true']::before { transform: none; opacity: 1; }
+.torneo__tab[aria-selected='true'] i { color: var(--c-ember-deep); }
+
+/* --------------------------------------------------------------- SONIDO -- */
+
+.torneo__sound {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.85rem;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--c-bone-mute);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--d-fast) var(--e-out), border-color var(--d-fast) var(--e-out);
+}
+
+.torneo__sound:hover:not(:disabled) { color: var(--c-bone); border-color: var(--c-line-strong); }
+.torneo__sound[data-playing] { color: var(--c-bone); border-color: var(--c-line-strong); }
+.torneo__sound:disabled { cursor: default; opacity: 0.55; }
+
+/* Tres barras. Quietas mientras no suena; cuando suena, se mueven en escala:
+   sin `height`, que dispararía layout en cada fotograma. */
+.torneo__sound-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 11px;
+}
+
+.torneo__sound-wave i {
+  display: block;
+  width: 2px;
+  height: 100%;
+  background: currentColor;
+  transform: scaleY(0.28);
+  transform-origin: center;
+  transition: transform var(--d-fast) var(--e-out);
+}
+
+.torneo__sound[data-playing] .torneo__sound-wave i {
+  animation: torneo-wave 900ms var(--e-inout) infinite alternate;
+}
+.torneo__sound[data-playing] .torneo__sound-wave i:nth-child(2) { animation-delay: 160ms; }
+.torneo__sound[data-playing] .torneo__sound-wave i:nth-child(3) { animation-delay: 320ms; }
+
+.torneo__sound[data-missing] .torneo__sound-wave i { transform: scaleY(0.18); }
+
+/* -------------------------------------------------------------- PANELES -- */
+
+.torneo__panels {
+  /* Más estrecho que el lienzo general: las reglas son texto y a 96rem la
+     línea se haría ilegible. */
+  max-width: 74rem;
+  margin-block-start: clamp(0.6rem, 1.5vw, 1rem);
+}
+
+.torneo__panel {
+  animation: torneo-panel var(--d-base) var(--e-out) both;
+}
+
+.torneo__panel:focus-visible { outline-offset: 8px; }
+
+/* ---------------------------------------------------------------- REGLAS -- */
+
+.reglas {
+  display: grid;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+@media (min-width: 900px) {
+  .reglas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.reglas__grupo {
+  padding: clamp(1.25rem, 2.6vw, 2rem);
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-lg);
+  background: var(--c-ink-raise);
+}
+
+.reglas__titulo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-xs);
+  font-family: var(--f-display);
+  font-size: var(--t-h3);
+  font-weight: var(--w-medium);
+  line-height: 1.1;
+  letter-spacing: var(--ls-snug);
+  text-transform: uppercase;
+  padding-block-end: var(--sp-sm);
+  border-block-end: var(--bw) solid var(--c-line);
+}
+
+.reglas__titulo i {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  font-style: normal;
+  letter-spacing: var(--ls-meta);
+  color: var(--c-ember);
+}
+
+.reglas__lista { margin: 0; }
+
+.reglas__item {
+  padding-block: var(--sp-sm);
+  border-block-end: var(--bw) solid var(--c-line);
+}
+.reglas__item:last-child { border-block-end: 0; padding-block-end: 0; }
+
+.reglas__item dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone);
+}
+
+.reglas__item dd {
+  margin: 0;
+  margin-block-start: 0.4rem;
+  color: var(--c-bone-soft);
+  font-size: var(--t-small);
+  line-height: 1.6;
+}
+
+/* Sub-puntos: la viñeta es una raya de brasa, no un disco. */
+.reglas__sub {
+  margin-block-start: var(--sp-2xs);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.reglas__sub li {
+  position: relative;
+  padding-inline-start: 1.1rem;
+}
+
+.reglas__sub li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 0.55rem;
+  height: var(--bw);
+  background: var(--c-ember);
+}
+
+/* Caso práctico: mismo texto, otra voz. El filo lo separa del cuerpo de la
+   regla sin tener que meter una tarjeta dentro de otra. */
+.reglas__ejemplo {
+  margin-block-start: var(--sp-sm);
+  padding-inline-start: var(--sp-sm);
+  border-inline-start: 2px solid var(--c-line-strong);
+  color: var(--c-bone-mute);
+}
+
+.reglas__ejemplo b {
+  display: block;
+  margin-block-end: 0.3rem;
+  color: var(--c-clay);
+}
+
+/* -------------------------------------------------------- PRÓXIMO DUELO -- */
+
+.duelo {
+  max-width: 62rem;
+  margin-inline: auto;
+}
+
+.duelo__media { width: 100%; }
+
+/* El texto va debajo de la imagen, dentro de la misma lámina: al pasar de una
+   a otra viajan juntos. */
+.duelo__texto {
+  margin: var(--sp-md) auto 0;
+  max-width: 52ch;
+  color: var(--c-bone-soft);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ----------------------------------------------------- SALÓN DE LA FAMA --
+   Tres láminas en carrusel: dos con los siete puestos y una de «coming soon».
+   El título de cada lámina va dentro de ella para que viaje con su contenido.
+
+   Siete fichas iguales. Al pasar el puntero la ficha se levanta y su retrato
+   se acerca: las dos cosas son `transform`, así que la retícula no se remide.
+   Un acordeón que ensancha la ficha activa sería `width` animado, que es
+   justo lo que este sitio no hace.                                          */
+
+.salon__lamina { display: block; }
+
+/* Logo de la lámina, en el sitio del título. Cada lámina lleva el suyo. Si el
+   archivo aún no está, el <img> se retira solo y el hueco queda en blanco: sin
+   texto de relleno debajo que el logo pudiera tapar. El formato da igual —.svg
+   si la marca es vectorial, .png o .webp si no—. */
+.salon__brand {
+  display: grid;
+  place-items: center;
+  min-block-size: 4.5rem;
+  margin-block-end: var(--sp-md);
+}
+
+.salon__logo {
+  max-block-size: 4.5rem;
+  max-inline-size: min(100%, 22rem);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.salon__titulo {
+  margin-block-end: var(--sp-md);
+  font-family: var(--f-display);
+  font-size: var(--t-h3);
+  font-weight: var(--w-medium);
+  line-height: 1.1;
+  letter-spacing: var(--ls-snug);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Lámina sin campeones: el hueco entero, con su promesa y nada más. */
+.salon__soon {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--sp-sm);
+  min-block-size: 18rem;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: var(--bw) dashed var(--c-line-strong);
+  border-radius: var(--r-lg);
+  text-align: center;
+}
+
+.salon__soon-title {
+  font-family: var(--f-display);
+  font-size: var(--t-h1);
+  font-weight: var(--w-bold);
+  line-height: 1;
+  letter-spacing: var(--ls-tight);
+  text-transform: uppercase;
+}
+
+.salon__soon-note {
+  max-width: 42ch;
+  color: var(--c-bone-mute);
+  font-size: var(--t-small);
+  line-height: 1.55;
+}
+
+.salon {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+}
+
+/* A partir de aquí caben los siete de un tirón, que es como se leen: una
+   temporada al lado de la otra. */
+@media (min-width: 1080px) {
+  .salon { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+}
+
+.salon__card {
+  --reveal-delay: calc(var(--i, 0) * 60ms);
+  text-align: center;
+  transition: transform var(--d-base) var(--e-out);
+}
+
+.salon__card:hover { transform: translate3d(0, -6px, 0); }
+
+.salon__photo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-md);
+  background: var(--c-ink-raise);
+  isolation: isolate;
+  transition: border-color var(--d-base) var(--e-out);
+}
+
+.salon__card:hover .salon__photo { border-color: var(--c-line-strong); }
+
+/* `--fit` lo escribe la ficha desde los datos (`ajuste`): 'cover' llena y
+   recorta; 'contain' mete la imagen entera, venga con la proporción que
+   venga. */
+.salon__photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: var(--fit, cover);
+  transition: transform var(--d-slow) var(--e-out);
+}
+.salon__card:hover .salon__photo img { transform: scale(1.05); }
+
+/* Sprite: se pinta entero y con aire, no recortado como un retrato, y sin
+   suavizar —96 px interpolados se ven sucios; en píxel duro se ven como son—. */
+.salon__card[data-sprite] .salon__photo img {
+  object-fit: contain;
+  padding: 14%;
+  image-rendering: pixelated;
+}
+
+.salon__initials {
+  font-family: var(--f-display);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: var(--w-bold);
+  letter-spacing: var(--ls-tight);
+  color: var(--c-bone-mute);
+}
+
+.salon__season {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: var(--r-xs);
+  background: color-mix(in oklab, var(--c-ink) 72%, transparent);
+  color: var(--c-clay);
+}
+
+.salon__name {
+  margin-block-start: var(--sp-2xs);
+  font-family: var(--f-display);
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  line-height: 1.15;
+  letter-spacing: var(--ls-snug);
+}
+
+.salon__lema {
+  margin-block-start: 0.15rem;
+  font-size: var(--t-small);
+  line-height: 1.35;
+  color: var(--c-bone-mute);
+}
+
+/* Temporada sin campeón: el hueco se ve como hueco, no como un error. */
+.salon__card[data-libre] .salon__photo {
+  border-style: dashed;
+  background: transparent;
+}
+.salon__card[data-libre] .salon__name { color: var(--c-bone-mute); }
+
+/* ------------------------------------------------------------- TABLERO --
+   La puntuación vive fuera (leaderboarded.com). Aquí es una lámina enlazada:
+   la imagen que sirve el propio tablero y, debajo, una barra con el nombre y
+   la llamada. El `aspect-ratio` de la lámina la reserva antes de que llegue,
+   así que abrir la pestaña no mueve nada de sitio.
+
+   El snippet original venía con todo el estilo en línea y en claro: aquí se
+   reescribe con los tokens del sitio para que no sea un parche blanco en una
+   página oscura.                                                            */
+
+.board__titulo {
+  margin-block-end: clamp(1.5rem, 3.5vw, 2.5rem);
+  font-family: var(--f-display);
+  font-size: var(--t-h2);
+  font-weight: var(--w-bold);
+  line-height: 1;
+  letter-spacing: var(--ls-tight);
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.board {
+  display: block;
+  max-width: 34rem;
+  margin: 0 auto;
+  border: var(--bw) solid var(--c-line);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--c-ink-raise);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--shadow-lift);
+  transition:
+    transform var(--d-base) var(--e-out),
+    border-color var(--d-base) var(--e-out);
+}
+
+.board:hover,
+.board:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--c-line-strong);
+}
+
+.board__shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  background: var(--c-ink);
+}
+
+.board__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  padding: var(--sp-xs) var(--sp-sm);
+  border-block-start: var(--bw) solid var(--c-line);
+}
+
+.board__meta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.board__nombre {
+  display: block;
+  font-family: var(--f-display);
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  line-height: 1.2;
+  letter-spacing: var(--ls-snug);
+  color: var(--c-bone);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.board__fuente {
+  display: block;
+  margin-block-start: 0.2rem;
+  font-size: var(--t-meta);
+  font-style: normal;
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+.board__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-ember);
+}
+
+/* La flecha es lo único que se mueve: un desplazamiento, nada de layout. */
+.board__cta span {
+  transition: transform var(--d-base) var(--e-out);
+}
+
+.board:hover .board__cta span,
+.board:focus-visible .board__cta span {
+  transform: translateX(0.25rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board,
+  .board__cta span { transition: none; }
+  .board:hover,
+  .board:focus-visible { transform: none; }
+  .board:hover .board__cta span { transform: none; }
+}
+
+/* ---------------------------------------------------------------- CURSOR --
+   En esta página el puntero es Lucas. El .ani de Windows no lo pinta ningún
+   navegador, así que se desmontó en dos piezas que sí entienden: una tira de
+   sus cuatro pasos (`lucas-sprite.png`, 128x32) para la versión animada y el
+   primer fotograma en .cur para la estática.
+
+   La animada no añade ni un script: reaprovecha el punto de mira del cursor
+   del sitio —que ya va exacto sobre el puntero y lo mueve el rAF compartido—,
+   le quita la inversión y le pone la tira. El disco rezagado se apaga: dos
+   cursores a la vez son uno de más.
+
+   El margen de 16 px devuelve el punto caliente a la esquina superior
+   izquierda, que es donde lo tiene el archivo: la posición del punto la
+   escribe el script en un `transform` en línea con `translate(-50%, -50%)`,
+   y un estilo en línea gana a la hoja, así que se compensa con la caja.     */
+
+body:has(.torneo) .cursor__disc { display: none; }
+
+body:has(.torneo) .cursor__dot {
+  width: 32px;
+  height: 32px;
+  margin: 16px 0 0 16px;
+  border-radius: 0;
+  mix-blend-mode: normal;
+  opacity: 1;
+  background: url('/media/torneo/lucas-sprite.png') 0 0 / 400% 100% no-repeat;
+  image-rendering: pixelated;
+  /* Cuatro pasos a 250 ms: el mismo compás que declara el .ani (15 jiffies). */
+  animation: lucas-pasos 1s steps(4) infinite;
+}
+
+@keyframes lucas-pasos {
+  to { background-position-x: -128px; }
+}
+
+/* Respaldo estático: cuando el cursor del sitio no está en pantalla —sin JS,
+   o con «reducir movimiento», que lo apaga— el puntero nativo se sustituye
+   por el primer fotograma. Así nunca se queda sin Lucas ni sin puntero. */
+html:not([data-has-cursor]) .torneo,
+html:not([data-has-cursor]) .torneo * {
+  cursor: url('/media/torneo/lucas.cur') 0 0, auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .torneo,
+  .torneo * { cursor: url('/media/torneo/lucas.cur') 0 0, auto; }
+}
+
+@keyframes torneo-panel {
+  from { opacity: 0; transform: translate3d(0, 0.6rem, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes torneo-wave {
+  from { transform: scaleY(0.28); }
+  to   { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .torneo__title { transform: none; transition: none; }
+  .torneo__panel { animation: none; }
+  .salon__card,
+  .salon__photo img { transition: none; }
+  .salon__card:hover { transform: none; }
+  .salon__card:hover .salon__photo img { transform: none; }
+  .torneo__sound[data-playing] .torneo__sound-wave i {
+    animation: none;
+    transform: scaleY(0.6);
+  }
+}

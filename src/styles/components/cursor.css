@@ -1,0 +1,142 @@
+/* -----------------------------------------------------------------------------
+   CURSOR INVERTIDO
+   Un disco blanco con `mix-blend-mode: difference`: no dibuja un color, invierte
+   el que encuentra debajo. Funciona igual sobre el fondo oscuro de la página y
+   sobre el bloque claro de contacto, sin calcular contraste en ningún sitio.
+
+   Sólo existe en punteros finos; el táctil nunca lo ve.
+----------------------------------------------------------------------------- */
+
+.cursor { display: none; }
+
+@media (pointer: fine) {
+  [data-has-cursor] .cursor {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-cursor);
+    pointer-events: none;
+    border-radius: 50%;
+    /* La inversión. Todo lo demás del cursor es tamaño y tiempo. */
+    mix-blend-mode: difference;
+    background: #fff;
+    opacity: 0;
+    transition: opacity var(--d-fast) linear;
+    will-change: transform;
+  }
+
+  [data-cursor-visible='true'] .cursor { opacity: 1; }
+
+  /* La etiqueta y la X ocupan la misma celda: nunca se ven a la vez. */
+  .cursor__disc { grid-template-areas: 'centro'; }
+  .cursor__label,
+  .cursor__x { grid-area: centro; }
+
+  /* --- Disco ---------------------------------------------------------- */
+  .cursor__disc {
+    --cursor-size: 3.75rem;
+    width: var(--cursor-size);
+    height: var(--cursor-size);
+    transition:
+      opacity var(--d-fast) linear,
+      width 460ms var(--e-out),
+      height 460ms var(--e-out);
+  }
+
+  /* --- Punto de mira --------------------------------------------------- */
+  /* Va exacto sobre el puntero mientras el disco llega tarde. Al invertir
+     sobre lo ya invertido, se ve como un agujero con el color real de la
+     página: marca el punto sin ensuciar el efecto.                        */
+  .cursor__dot {
+    width: 6px;
+    height: 6px;
+    transition:
+      opacity var(--d-fast) linear,
+      transform var(--d-fast) var(--e-out);
+  }
+
+  /* --- Etiqueta -------------------------------------------------------- */
+  /* Se compone dentro del disco antes de que éste invierta, así que en negro
+     sale legible sea cual sea el fondo de la sección.                     */
+  .cursor__label {
+    font-family: var(--f-mono);
+    font-size: 0.625rem;
+    letter-spacing: var(--ls-meta);
+    text-transform: uppercase;
+    color: #000;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 240ms var(--e-out), transform 320ms var(--e-spring);
+    white-space: nowrap;
+  }
+
+  /* --- Aspa de cierre --------------------------------------------------- */
+  /* Se compone en negro dentro del disco, igual que la etiqueta: al invertir
+     el conjunto se lee sobre cualquier fondo. En reposo es una cruz girada,
+     así que al aparecer se endereza hasta la X. */
+  .cursor__x {
+    position: relative;
+    width: 1.15rem;
+    height: 1.15rem;
+    opacity: 0;
+    transform: scale(0.55) rotate(-45deg);
+    transition: opacity 240ms var(--e-out), transform 380ms var(--e-spring);
+  }
+
+  .cursor__x::before,
+  .cursor__x::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #000;
+    border-radius: 2px;
+  }
+  .cursor__x::before { transform: translateY(-50%) rotate(45deg); }
+  .cursor__x::after { transform: translateY(-50%) rotate(-45deg); }
+
+  /* --- Estados --------------------------------------------------------- */
+  /* El disco sólo cambia de tamaño: el color siempre lo pone la página. */
+  [data-cursor='link'] .cursor__disc { --cursor-size: 4.75rem; }
+
+  [data-cursor='view'] .cursor__disc { --cursor-size: 7.25rem; }
+  [data-cursor='close'] .cursor__disc { --cursor-size: 5.25rem; }
+  [data-cursor='copy'] .cursor__disc { --cursor-size: 6rem; }
+
+  [data-cursor='view'] .cursor__label,
+  [data-cursor='copy'] .cursor__label { opacity: 1; transform: none; }
+
+  [data-cursor='close'] .cursor__x { opacity: 1; transform: none; }
+
+  /* Con etiqueta o aspa dentro del disco, el punto se cruza con la lectura:
+     se retira.
+
+     Va por `opacity` y no por `transform` a propósito. El punto lleva su
+     posición en un `transform` en línea que `scripts/cursor.ts` reescribe en
+     cada frame, y un estilo en línea gana a la hoja: cualquier `transform` de
+     aquí no llegaría a aplicarse nunca. */
+  [data-cursor='view'] .cursor__dot,
+  [data-cursor='copy'] .cursor__dot,
+  [data-cursor='close'] .cursor__dot { opacity: 0; }
+
+  /* Se oculta el cursor nativo sólo cuando el propio ya está en pantalla,
+     así un fallo de JS nunca deja al usuario sin puntero.                 */
+  [data-has-cursor] body { cursor: none; }
+  [data-has-cursor] a,
+  [data-has-cursor] button,
+  [data-has-cursor] [role='button'] { cursor: none; }
+  [data-has-cursor] input,
+  [data-has-cursor] textarea,
+  [data-has-cursor] select { cursor: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor { display: none !important; }
+  [data-has-cursor] body,
+  [data-has-cursor] a,
+  [data-has-cursor] button { cursor: auto; }
+}

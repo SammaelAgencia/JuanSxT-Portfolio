@@ -1,0 +1,40 @@
+/* -----------------------------------------------------------------------------
+   Punto de entrada de estilos. El orden importa: cada capa depende de la previa.
+
+     fonts       tipografías auto-alojadas
+     tokens      variables de diseño  ←  edita aquí para recolorear el sitio
+     reset       normalización
+     base        aplicación de los tokens al documento
+     utilities   composición (rejilla, contenedores, helpers)
+     animations  fotogramas clave y primitivas de revelado
+     components  piezas reutilizables
+     sections    bloques concretos de la página
+----------------------------------------------------------------------------- */
+@import './fonts.css';
+@import './tokens.css';
+@import './reset.css';
+@import './base.css';
+@import './utilities.css';
+@import './animations.css';
+
+@import './components/intro.css';
+@import './components/cursor.css';
+@import './components/progressive-blur.css';
+@import './components/header.css';
+@import './components/button.css';
+@import './components/label.css';
+@import './components/media.css';
+@import './components/marquee.css';
+@import './components/footer.css';
+@import './components/scene.css';
+@import './components/slider.css';
+
+@import './sections/hero.css';
+@import './sections/manifesto.css';
+@import './sections/work.css';
+@import './sections/services.css';
+@import './sections/process.css';
+@import './sections/trajectory.css';
+@import './sections/toolkit.css';
+@import './sections/contact.css';
+@import './sections/pokemon.css';

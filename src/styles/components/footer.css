@@ -1,0 +1,46 @@
+/* Pie: colofón discreto bajo la sección de contacto. */
+
+.footer {
+  position: relative;
+  padding-block: var(--sp-lg) var(--sp-md);
+  background: var(--c-ink-sink);
+  border-block-start: var(--bw) solid var(--c-line);
+}
+
+.footer__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-sm) var(--sp-lg);
+  color: var(--c-bone-mute);
+}
+
+.footer__note {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+}
+
+.footer__note b {
+  font-weight: var(--w-medium);
+  color: var(--c-bone-soft);
+}
+
+.footer__top {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--c-bone-soft);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+}
+
+.footer__top span {
+  display: inline-block;
+  transition: transform 420ms var(--e-out);
+}
+.footer__top:hover span { transform: translate3d(0, -4px, 0); }

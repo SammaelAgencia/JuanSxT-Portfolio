@@ -1,0 +1,169 @@
+/* =============================================================================
+   TOKENS  ·  Única fuente de verdad del diseño.
+   Cambiar valores aquí repinta todo el sitio sin tocar la maqueta.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------- COLOR --
+     "ink" = fondo, "bone" = tinta clara. Los tres negros llevan sesgo rojo a
+     propósito (R > B > G): la profundidad se saca subiendo un peldaño dentro
+     del mismo tono, no metiendo grises neutros.
+     Los acentos se usan con MUCHA moderación: son señal, no decoración.      */
+  --c-ink:          #0b0405;   /* fondo base, negro con sesgo rojo            */
+  --c-ink-raise:    #150e0f;   /* superficie elevada (cards, filas hover)     */
+  --c-ink-sink:     #060203;   /* pozos, footer                               */
+
+  --c-bone:         #ffffff;   /* texto principal, blanco puro                */
+  --c-bone-soft:    #d6d0d1;   /* texto secundario                            */
+  --c-bone-mute:    #948c8e;   /* meta, labels, deshabilitado                 */
+
+  --c-ember:        #e32735;   /* acento primario · rojo                      */
+  --c-ember-deep:   #b11e29;
+  --c-ultra:        #1b3cff;   /* acento secundario · azul eléctrico          */
+  --c-lime:         #c8ff4d;   /* acento terciario · señal / disponible       */
+  --c-clay:         #e8dcc8;   /* acento cuaternario · arena, fichas y fases  */
+
+  --c-line:         color-mix(in oklab, var(--c-bone) 14%, transparent);
+  --c-line-strong:  color-mix(in oklab, var(--c-bone) 26%, transparent);
+  --c-veil:         color-mix(in oklab, var(--c-ink) 72%, transparent);
+
+  --c-selection-bg: var(--c-ember);
+  --c-selection-fg: var(--c-bone);
+
+  /* -------------------------------------------------------- TIPOGRAFÍA -- */
+  --f-display: 'Salty Ages', 'Helvetica Neue', Arial, sans-serif;
+  --f-serif:   'Gothicfed', 'Times New Roman', Georgia, serif;
+  --f-sans:    'Berkelium Sans', ui-sans-serif, system-ui, sans-serif;
+  --f-mono:    'Geist Mono Variable', 'Geist Mono', ui-monospace,
+               'SFMono-Regular', Menlo, monospace;
+
+  /* Escala fluida — sin media queries, sin romper el zoom del navegador.    */
+  --t-mega:   clamp(4rem,    17vw,   19rem);
+  --t-d1:     clamp(2.6rem,  10vw,   10rem);
+  --t-d2:     clamp(2.5rem,  6.8vw,  7rem);
+  --t-h1:     clamp(2.1rem,  4.6vw,  4.4rem);
+  --t-h2:     clamp(1.6rem,  3vw,    2.8rem);
+  --t-h3:     clamp(1.25rem, 1.7vw,  1.6rem);
+  --t-lead:   clamp(1.125rem,1.55vw, 1.5rem);
+  --t-body:   clamp(1rem,    1.05vw, 1.0625rem);
+  --t-small:  0.875rem;
+  --t-meta:   0.6875rem;
+
+  /* Compensación óptica de la cursiva de acento. Gothicfed tiene la altura de
+     x en 0.487 de su em y Salty Ages en 0.560: a igual cuerpo se ve más
+     pequeña. 0.560 / 0.487 = 1.15, que es lo que hace falta para que las dos
+     se lean del mismo tamaño. Va acompañada SIEMPRE de `line-height: 0`, que
+     es lo que impide que el acento, al crecer, separe las líneas. */
+  --t-em: 1.15;
+
+  --lh-tight:  0.88;
+  --lh-snug:   1.04;
+  --lh-normal: 1.18;
+  --lh-prose:  1.55;
+
+  --ls-mega:  -0.045em;
+  --ls-tight: -0.03em;
+  --ls-snug:  -0.015em;
+  --ls-meta:   0.14em;
+
+  --w-light:  300;
+  --w-book:   400;
+  --w-medium: 500;
+  --w-bold:   700;
+  --w-black:  800;
+
+  /* ------------------------------------------------------------ ESPACIO -- */
+  --sp-3xs: 0.25rem;
+  --sp-2xs: 0.5rem;
+  --sp-xs:  0.75rem;
+  --sp-sm:  1rem;
+  --sp-md:  1.5rem;
+  --sp-lg:  2.5rem;
+  --sp-xl:  4rem;
+  --sp-2xl: 6rem;
+  --sp-3xl: clamp(6rem, 12vw, 12rem);
+
+  --gutter:      clamp(1.25rem, 4.2vw, 4.5rem);
+  --section-y:   clamp(3.65rem, 7.3vw, 7.3rem);
+  --max-w:       96rem;   /* ancho útil máximo del lienzo                    */
+  --max-prose:   38rem;   /* medida de lectura cómoda                        */
+
+  --grid-cols: 12;
+  --grid-gap:  clamp(1rem, 1.8vw, 2rem);
+
+  /* ------------------------------------------------------------- FORMA -- */
+  --r-xs: 2px;
+  --r-sm: 6px;
+  --r-md: 14px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+  --bw: 1px;
+
+  /* ------------------------------------------------------- MOVIMIENTO -- */
+  --e-out:    cubic-bezier(0.16, 1, 0.3, 1);        /* expo out              */
+  --e-inout:  cubic-bezier(0.76, 0, 0.24, 1);       /* quart in-out          */
+  --e-soft:   cubic-bezier(0.33, 1, 0.68, 1);
+  --e-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --d-fast:   180ms;
+  --d-base:   380ms;
+  --d-slow:   720ms;
+  --d-reveal: 900ms;
+
+  /* Amortiguación del cursor / parallax (0-1, mayor = más pegado al mouse). */
+  --lerp: 0.09;
+
+  /* -------------------------------------------------------------- CAPAS -- */
+  --z-canvas:  0;
+  --z-content: 1;
+  --z-sticky:  20;
+  --z-nav:     40;
+  --z-scene:   50;   /* ficha a pantalla completa: tapa la nav, no el cursor */
+  --z-cursor:  60;
+  --z-loader:  80;
+
+  /* --------------------------------------------------------- SUPERFICIE -- */
+  --grain-opacity: 0.05;
+  --shadow-lift: 0 1px 0 var(--c-line), 0 24px 60px -30px rgb(0 0 0 / 0.9);
+
+  /* Cristal. Única superficie translúcida del cromo: la cápsula que aísla la
+     navegación del fondo. El sesgo es el de siempre —luz de hueso sobre
+     tinta—, así que se recolorea sola con el resto del sitio.
+     `--glass-blur` es el mando de coste. */
+  --c-glass:       color-mix(in oklab, var(--c-bone) 7%, transparent);
+  --c-glass-solid: color-mix(in oklab, var(--c-ink) 76%, transparent);
+  --c-glass-edge:  color-mix(in oklab, var(--c-bone) 14%, transparent);
+  --c-glass-sheen: color-mix(in oklab, var(--c-bone) 26%, transparent);
+  --c-glass-thumb: color-mix(in oklab, var(--c-bone) 13%, transparent);
+  --glass-blur:    16px;
+  --glass-sat:     140%;
+
+  --shadow-glass:
+    inset 0 var(--bw) 0 var(--c-glass-sheen),
+    inset 0 0 0 var(--bw) var(--c-glass-edge),
+    0 14px 34px -22px rgb(0 0 0 / 0.85);
+  --shadow-glass-thumb:
+    inset 0 var(--bw) 0 var(--c-glass-sheen),
+    inset 0 0 0 var(--bw) var(--c-glass-edge);
+}
+
+/* Bloques invertidos: se declaran una vez y se aplican con [data-theme].
+   Blanco puro, no papel: el salto de contraste es todo el recurso, sin tintes
+   intermedios que suavicen el corte. La tinta y el fondo se intercambian los
+   papeles; los grises claros conservan el mismo sesgo rojo que los negros para
+   que no tiren a verde contra ellos.
+
+   El rojo NO se retoca aquí: sobre blanco puro ya contrasta lo suficiente, y
+   así el acento es exactamente el mismo en toda la página.                  */
+[data-theme='light'] {
+  --c-ink:       #ffffff;
+  --c-ink-raise: #f6f2f3;
+  --c-ink-sink:  #ebe6e7;
+  --c-bone:      #0b0405;
+  --c-bone-soft: #453c3d;
+  --c-bone-mute: #7a7072;
+  --c-lime:      #3f6b0f;   /* el lima tampoco contrasta sobre blanco */
+  --c-line:      color-mix(in oklab, #0b0405 16%, transparent);
+  --c-line-strong: color-mix(in oklab, #0b0405 34%, transparent);
+  --grain-opacity: 0.035;
+}

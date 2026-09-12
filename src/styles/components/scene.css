@@ -1,0 +1,224 @@
+/* -----------------------------------------------------------------------------
+   ESCENA DE PROYECTO
+   Ficha a pantalla completa: la descripción se queda quieta a la izquierda y
+   las capturas pasan por la derecha. Sólo scrollea una de las dos columnas.
+
+   Cerrada es `display: none` a propósito, no `opacity: 0`. Un elemento sin caja
+   no genera imágenes: el `loading="lazy"` de las tres capturas no dispara y la
+   escena no cuesta nada mientras nadie la abra. El script la monta un frame
+   antes de pedir la transición, que si no el navegador agrupa las dos cosas y
+   la apertura no se anima.
+----------------------------------------------------------------------------- */
+
+.scene {
+  position: fixed;
+  inset: 0;
+  /* Por encima de la cabecera, por debajo del cursor: la X tiene que verse
+     sobre la escena. */
+  z-index: var(--z-scene);
+  background: var(--c-ink);
+  display: none;
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  transition:
+    opacity 300ms var(--e-out),
+    clip-path 560ms var(--e-inout);
+}
+
+/* Montada: ocupa la pantalla en dos bandas —descripción arriba, capturas
+   abajo—, y cada una gestiona su propio desbordamiento. */
+.scene[data-mounted] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.scene[data-open] {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+}
+
+/* Mientras hay una escena abierta la página de debajo no se mueve. Al cerrar,
+   el script devuelve el scroll a la ficha desde la que se abrió. */
+[data-scene-open] { overflow: hidden; }
+
+/* --- Columna fija ------------------------------------------------------- */
+.scene__aside {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.85rem, 1.6vw, 1.3rem);
+  padding: calc(var(--gutter) + 2.5rem) var(--gutter) var(--gutter);
+  /* En vertical la descripción no puede comerse la pantalla: se le pone techo
+     y, si el texto es largo, scrollea dentro de su propia banda. */
+  max-block-size: 46svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-block-end: var(--bw) solid var(--c-line);
+}
+
+.scene__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-sm);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+.scene__num { color: var(--piece-accent, var(--c-ember)); }
+.scene__client { flex: 1; }
+
+.scene__title {
+  font-family: var(--f-display);
+  font-size: clamp(2rem, 5.5vw, 4.6rem);
+  font-weight: var(--w-medium);
+  line-height: 0.98;
+  letter-spacing: var(--ls-tight);
+  text-wrap: balance;
+  max-width: 14ch;
+}
+
+.scene__summary {
+  max-width: 40rem;
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--c-bone-soft);
+}
+
+.scene__outcome {
+  max-width: 40rem;
+  padding-inline-start: var(--sp-sm);
+  border-inline-start: 2px solid var(--piece-accent, var(--c-ember));
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--c-bone);
+}
+
+.scene__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-block-start: 0.35rem;
+}
+
+/* --- Columna de capturas ------------------------------------------------
+   Una captura a la vez, con el canto de la anterior y la siguiente asomando
+   arriba y abajo. Quien centra es `scroll-snap`, no un script: el navegador
+   resuelve el gesto entero en el compositor.
+
+   El alto va en porcentaje del propio carril, y de ahí sale todo lo demás: lo
+   que sobra de `--shot-h` se reparte entre los dos cantos. Y hace falta un
+   alto explícito, porque `.slot` trae `aspect-ratio` y en una rejilla las
+   filas se lo reparten a su manera —era eso lo que montaba unas sobre otras—.
+
+   El bucle lo cierra `scripts/scene.ts` clonando la tira; sin JS esto sigue
+   siendo una columna de capturas que se lee con el scroll, sólo que con
+   principio y final.                                                        */
+.scene__reel {
+  --shot-h: 74%;
+
+  display: grid;
+  /* El alto va en la FILA, no en la ficha. Un porcentaje sobre el ítem se
+     resolvería contra su fila —de tamaño `auto`— y como `.slot` sólo tiene
+     hijos absolutos, su contenido mide cero y la ficha colapsaba. Sobre la
+     pista, en cambio, el porcentaje se mide contra el alto del carril, que sí
+     es definido. */
+  grid-auto-rows: var(--shot-h);
+  align-content: start;
+  gap: clamp(0.75rem, 1.6vh, 1.25rem);
+  padding-inline: var(--gutter);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  /* Los cantos se disuelven contra el borde en vez de cortarse en seco. */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+}
+
+.scene__shot {
+  /* Gana a `.slot` por orden de importación: utilities va antes que components.
+     Sin esto la proporción del proyecto pelearía con el alto de la fila. */
+  aspect-ratio: auto;
+  border-radius: var(--r-md);
+  scroll-snap-align: center;
+}
+
+/* --- Volver ------------------------------------------------------------- */
+/* La escena entera cierra al hacer clic —eso es lo que anuncia la X del
+   cursor—, pero eso no se ve ni se puede tabular: este botón es el control
+   explícito, y el único que existe en táctil, donde no hay cursor. */
+.scene__close {
+  position: absolute;
+  top: var(--gutter);
+  right: var(--gutter);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: var(--r-pill);
+  background: var(--c-glass);
+  box-shadow: var(--shadow-glass);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone);
+  transition: color var(--d-fast) var(--e-out);
+}
+
+.scene__close:hover,
+.scene__close:focus-visible { color: var(--c-ember); }
+
+.scene__close-glyph {
+  position: relative;
+  width: 12px;
+  height: 12px;
+}
+.scene__close-glyph::before,
+.scene__close-glyph::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: var(--bw);
+  background: currentColor;
+}
+.scene__close-glyph::before { transform: translateY(-50%) rotate(45deg); }
+.scene__close-glyph::after { transform: translateY(-50%) rotate(-45deg); }
+
+/* --- Escritorio: dos columnas ------------------------------------------- */
+@media (min-width: 900px) {
+  .scene[data-mounted] {
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .scene__aside {
+    justify-content: center;
+    max-block-size: none;
+    padding: var(--gutter) clamp(2rem, 4vw, 4rem);
+    border-block-end: 0;
+    border-inline-end: var(--bw) solid var(--c-line);
+  }
+
+  .scene__reel { padding-inline: clamp(2rem, 4vw, 4rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene { transition: none; }
+}

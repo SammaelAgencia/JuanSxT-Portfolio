@@ -1,0 +1,164 @@
+/* -----------------------------------------------------------------------------
+   TRAYECTO
+   Columna de años fija a la izquierda, entradas a la derecha. Editorial, no
+   una línea de tiempo con circulitos: los años son el eje y el resto es texto.
+----------------------------------------------------------------------------- */
+
+.trajectory { position: relative; }
+
+.trajectory__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  margin-block-start: clamp(2rem, 5vw, 4rem);
+}
+
+.trajectory__rail {
+  display: none;
+  grid-column: 1 / 4;
+}
+
+@media (min-width: 900px) {
+  .trajectory__rail {
+    display: block;
+    position: sticky;
+    top: clamp(6rem, 14vh, 9rem);
+    align-self: start;
+  }
+}
+
+.trajectory__rail p {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+  margin-block-end: var(--sp-sm);
+}
+
+.trajectory__rail b {
+  display: block;
+  font-family: var(--f-display);
+  font-size: clamp(3.5rem, 7vw, 6rem);
+  font-weight: var(--w-bold);
+  line-height: 0.85;
+  letter-spacing: var(--ls-mega);
+}
+
+.trajectory__rail span {
+  display: block;
+  max-width: 16rem;
+  margin-block-start: var(--sp-sm);
+  font-size: var(--t-small);
+  color: var(--c-bone-soft);
+  line-height: 1.5;
+}
+
+.trajectory__list {
+  grid-column: 1 / -1;
+  border-block-start: var(--bw) solid var(--c-line);
+}
+
+@media (min-width: 900px) {
+  .trajectory__list { grid-column: 5 / -1; }
+}
+
+.role {
+  display: grid;
+  gap: var(--sp-xs);
+  padding-block: clamp(1.6rem, 3vw, 2.4rem);
+  border-block-end: var(--bw) solid var(--c-line);
+}
+
+.role__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2xs) var(--sp-sm);
+}
+
+.role__company {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-family: var(--f-display);
+  font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+  font-weight: var(--w-medium);
+  line-height: 1;
+  letter-spacing: var(--ls-tight);
+}
+
+.role__place {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+.role__dates {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  color: var(--c-bone-soft);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.role__dates b {
+  color: var(--c-lime);
+  font-weight: var(--w-medium);
+}
+
+.role__title {
+  font-size: var(--t-body);
+  color: var(--c-ember);
+}
+
+.role__bullets {
+  display: grid;
+  gap: 0.45rem;
+  margin-block-start: var(--sp-2xs);
+  max-width: 46rem;
+}
+
+.role__bullets li {
+  position: relative;
+  padding-inline-start: 1.35rem;
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--c-bone-soft);
+}
+
+/* Guion largo en lugar de viñeta: menos ruido, más lectura. */
+.role__bullets li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 0.7rem;
+  height: 1px;
+  background: var(--c-line-strong);
+}
+
+/* --- Formación --------------------------------------------------------- */
+.education {
+  display: grid;
+  gap: var(--sp-sm);
+  margin-block-start: clamp(2rem, 4vw, 3rem);
+}
+
+.education__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2xs) var(--sp-sm);
+  padding-block: 0.7rem;
+  border-block-start: var(--bw) solid var(--c-line);
+  font-size: var(--t-small);
+}
+
+.education__row b { font-weight: var(--w-medium); }
+.education__row span { color: var(--c-bone-mute); }

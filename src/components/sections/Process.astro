@@ -1,0 +1,48 @@
+---
+import { process } from '@data/process';
+import { ui } from '@data/ui';
+import { langOf } from '@i18n';
+import Label from '@components/ui/Label.astro';
+
+const lang = langOf(Astro.url.pathname);
+const t = ui[lang];
+
+/* Un filo de color distinto por paso: al apilarse se distinguen de un vistazo.
+   Son cinco fases y cinco filos: el quinto tira de la brasa profunda para no
+   repetir el color del primero justo cuando el mazo está completo. */
+const accents = [
+  'var(--c-ember)',
+  'var(--c-ultra)',
+  'var(--c-lime)',
+  'var(--c-clay)',
+  'var(--c-ember-deep)',
+];
+---
+
+<section class="section process" id="proceso">
+  <div class="shell">
+    <Label index="04" name={t.process.label} />
+
+    <div class="process__intro">
+      <p class="process__lede" data-reveal>{t.process.lede}</p>
+    </div>
+
+    <div class="stack-cards">
+      {
+        process.map((step, i) => (
+          <article
+            class="step"
+            style={`--i:${i}; --step-accent:${accents[i % accents.length]}`}
+          >
+            <p class="step__num">
+              <b>{step.step}</b>
+              {step[lang].duration}
+            </p>
+            <h3 class="step__title">{step[lang].title}</h3>
+            <p class="step__body">{step[lang].body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,46 @@
+---
+import { services } from '@data/services';
+import { ui } from '@data/ui';
+import { langOf } from '@i18n';
+import Label from '@components/ui/Label.astro';
+
+const lang = langOf(Astro.url.pathname);
+const t = ui[lang];
+---
+
+<section class="section services" id="servicios">
+  <div class="shell">
+    <Label index="03" name={t.services.label} />
+
+    <div class="services__list">
+      {
+        services.map((service, i) => {
+          const copy = service[lang];
+          return (
+            <details class="svc" name="servicios" open={i === 0}>
+              <summary class="svc__summary" data-cursor-hint="link">
+                <span class="svc__index">{service.index}</span>
+                <h3 class="svc__title">{copy.title}</h3>
+                <span class="svc__mark" aria-hidden="true" />
+              </summary>
+
+              <div class="svc__panel">
+                <div>
+                  <p class="svc__claim">{copy.claim}</p>
+                  <p class="svc__body">{copy.body}</p>
+                </div>
+                <div>
+                  <ul class="svc__deliverables">
+                    {copy.deliverables.map((item) => (
+                      <li class="svc__chip">{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </details>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,264 @@
+/* -----------------------------------------------------------------------------
+   HERO
+   Una sola pantalla, información concisa y un campo reactivo al puntero.
+   El campo es una retícula de puntos; un foco amortiguado la ilumina al pasar.
+   Todo el movimiento es transform sobre capas propias: el fondo nunca repinta.
+----------------------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-block: calc(var(--gutter) * 2 + 3rem) var(--gutter);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* --- Campo reactivo ---------------------------------------------------- */
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  --dot: color-mix(in oklab, var(--c-bone) 11%, transparent);
+  background-image: radial-gradient(circle at center, var(--dot) 1px, transparent 1.2px);
+  background-size: clamp(26px, 3.4vw, 46px) clamp(26px, 3.4vw, 46px);
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 35%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 35%, transparent 100%);
+}
+
+/* Campo de líneas en WebGL (`scripts/waves.ts`). Va dentro de `.field` a
+   propósito: hereda su máscara —así se disuelve antes de que acabe el hero,
+   sin enmascararlo dos veces— y queda debajo del foco, que lo enciende con
+   `plus-lighter` al pasar. Sin WebGL, escritorio o movimiento, el <div> se
+   queda vacío y no cuesta nada. */
+.field__waves {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--d-slow) var(--e-out);
+}
+
+/* El atributo lo pone el script cuando el contexto WebGL ya está vivo: evita
+   el parpadeo de un lienzo en negro durante el primer frame. */
+.field__waves[data-waves-on] { opacity: 1; }
+
+.field__waves canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.field__spot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(320px, 42vw, 640px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 700ms var(--e-out);
+  background:
+    radial-gradient(
+      circle at center,
+      color-mix(in oklab, var(--c-ember) 26%, transparent) 0%,
+      color-mix(in oklab, var(--c-ember) 9%, transparent) 34%,
+      transparent 68%
+    );
+  filter: blur(6px);
+  will-change: transform;
+  /* `plus-lighter` hace que los puntos de la retícula que quedan bajo el foco
+     se enciendan solos: el brillo sale del blending, no de una segunda capa
+     que habría que redibujar en cada frame. */
+  mix-blend-mode: plus-lighter;
+}
+
+[data-field-active='true'] .field__spot { opacity: 1; }
+[data-field-idle] .field__spot { opacity: 0; }
+
+/* --- Composición ------------------------------------------------------- */
+.hero__body {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--grid-gap) var(--grid-gap);
+  align-items: end;
+  flex: 1;
+  align-content: end;
+}
+
+.hero__eyebrow {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-xs) var(--sp-md);
+  margin-block-end: clamp(1.5rem, 4vw, 3rem);
+  color: var(--c-bone-mute);
+}
+
+.hero__title {
+  grid-column: 1 / -1;
+  font-family: var(--f-display);
+  font-size: var(--t-d1);
+  font-weight: var(--w-bold);
+  line-height: 0.86;
+  letter-spacing: var(--ls-mega);
+  /* Micro-parallax: el titular se inclina con el puntero, apenas unos px. */
+  transform: translate3d(
+    calc(var(--px, 0) * -8px),
+    calc(var(--py, 0) * -5px),
+    0
+  );
+  transition: transform 900ms var(--e-out);
+}
+
+.hero__title em {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: var(--w-book);
+  letter-spacing: -0.01em;
+  /* Compensación óptica y su interlineado neutro: ver --t-em en tokens.css. */
+  font-size: var(--t-em);
+  line-height: 0;
+  color: var(--c-ember);
+}
+
+.hero__title .u-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--c-bone);
+}
+
+.hero__lead {
+  grid-column: 1 / -1;
+  max-width: 34rem;
+  margin-block-start: clamp(1.5rem, 3.5vw, 2.5rem);
+}
+
+.hero__aside {
+  grid-column: 1 / -1;
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .hero__title { grid-column: 1 / 12; }
+  .hero__lead {
+    grid-column: 7 / 12;
+    margin-block-start: clamp(2rem, 4vw, 3.5rem);
+  }
+  .hero__aside {
+    display: block;
+    grid-column: 1 / 6;
+    align-self: end;
+    margin-block-start: clamp(2rem, 4vw, 3.5rem);
+  }
+}
+
+/* Ficha girada: rompe la retícula sin desordenarla. */
+.hero__stamp {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem 1.1rem;
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-sm);
+  rotate: -2.4deg;
+  background: color-mix(in oklab, var(--c-ink) 60%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: rotate 600ms var(--e-spring), border-color 400ms var(--e-out);
+}
+.hero__stamp:hover { rotate: 1.2deg; border-color: var(--c-ember); }
+
+.hero__stamp b {
+  font-family: var(--f-display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: var(--w-bold);
+  line-height: 0.9;
+  letter-spacing: var(--ls-tight);
+}
+
+/* --- Barra inferior ---------------------------------------------------- */
+.hero__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-block-start: clamp(2.5rem, 6vw, 4.5rem);
+  padding-block-start: var(--sp-sm);
+  border-block-start: var(--bw) solid var(--c-line);
+}
+
+.hero__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hero__meta dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+.hero__meta dd {
+  font-size: var(--t-small);
+  color: var(--c-bone);
+}
+
+/* Indicador de scroll: línea que baja en bucle. */
+.hero__scroll {
+  display: none;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+.hero__scroll i {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 42px;
+  background: var(--c-line);
+  overflow: hidden;
+}
+
+.hero__scroll i::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  height: 45%;
+  background: var(--c-ember);
+  animation: scroll-run 2.2s var(--e-inout) infinite;
+}
+
+@keyframes scroll-run {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(240%); }
+}
+
+@media (min-width: 700px) {
+  .hero__scroll { display: flex; }
+}
+
+/* Un shader del tamaño de la pantalla en gama media es exactamente el gasto
+   que este sitio evita: en móvil el lienzo ni se descarga. */
+@media (max-width: 899px) {
+  .field__waves { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__scroll i::after { animation: none; transform: none; height: 100%; }
+  .hero__title { transform: none; }
+  .field__waves { display: none; }
+}

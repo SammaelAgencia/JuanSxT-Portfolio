@@ -1,0 +1,18 @@
+---
+import Label from '@components/ui/Label.astro';
+import SplitText from '@components/ui/SplitText.astro';
+import { ui } from '@data/ui';
+import { langOf } from '@i18n';
+
+const t = ui[langOf(Astro.url.pathname)].manifesto;
+---
+
+<section class="section manifesto" id="enfoque">
+  <span class="ghost-num" aria-hidden="true">01</span>
+
+  <div class="shell">
+    <Label index="01" name={t.label} />
+
+    <SplitText as="p" class="manifesto__text" text={t.text} />
+  </div>
+</section>

@@ -1,0 +1,31 @@
+---
+import { toolkit, marqueeWords } from '@data/toolkit';
+import { ui } from '@data/ui';
+import { langOf } from '@i18n';
+import Label from '@components/ui/Label.astro';
+import Marquee from '@components/ui/Marquee.astro';
+
+const lang = langOf(Astro.url.pathname);
+const t = ui[lang];
+---
+
+<Marquee items={marqueeWords[lang]} speed={38} tilt />
+
+<section class="section section--tight toolkit" id="herramientas">
+  <div class="shell">
+    <Label index="06" name={t.toolkit.label} />
+
+    <div class="toolkit__grid">
+      {
+        toolkit.map((group, i) => (
+          <div class="toolkit__col" data-reveal style={`--reveal-delay:${i * 90}ms`}>
+            <p>{group[lang].label}</p>
+            {group[lang].items.map((item) => (
+              <span class="toolkit__item">{item}</span>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,62 @@
+---
+import { experience, education } from '@data/experience';
+import { ui } from '@data/ui';
+import { langOf } from '@i18n';
+import Label from '@components/ui/Label.astro';
+
+const lang = langOf(Astro.url.pathname);
+const t = ui[lang];
+---
+
+<section class="section trajectory" id="trayecto">
+  <div class="shell">
+    <Label index="05" name={t.trajectory.label} />
+
+    <div class="trajectory__grid">
+      <aside class="trajectory__rail" data-reveal>
+        <p>{t.trajectory.since}</p>
+        <b>{t.trajectory.sinceYear}</b>
+        <span>{t.trajectory.rail}</span>
+      </aside>
+
+      <div class="trajectory__list">
+        {
+          experience.map((role) => (
+            <article class="role" data-reveal>
+              <div class="role__head">
+                <h3 class="role__company">
+                  {role.company}
+                  <span class="role__place">{role.place}</span>
+                </h3>
+                <p class="role__dates">
+                  {role.from} — {role.current ? <b>{role[lang].to}</b> : role[lang].to}
+                </p>
+              </div>
+
+              <p class="role__title">{role[lang].title}</p>
+
+              <ul class="role__bullets">
+                {role[lang].bullets.map((bullet) => (
+                  <li>{bullet}</li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+
+        <div class="education" data-reveal>
+          {
+            education.map((item) => (
+              <div class="education__row">
+                <p>
+                  <b>{item[lang].title}</b> <span>· {item.school}</span>
+                </p>
+                <span class="u-mono">{item.years}</span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

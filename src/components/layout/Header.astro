@@ -1,0 +1,132 @@
+---
+import { site, nav, navContact } from '@data/site';
+import { ui } from '@data/ui';
+import { langOf, langs, langMeta, homePath, isHome } from '@i18n';
+
+interface Props {
+  /** Cabecera sin navegación: sólo la marca, que es la vuelta al índice.
+   *  Lo usan las páginas internas, donde el índice de secciones no aplica.
+   *  Tampoco pintan el selector de idioma: sólo lo tiene el sitio principal. */
+  bare?: boolean;
+}
+
+const { bare = false } = Astro.props;
+
+const lang = langOf(Astro.url.pathname);
+const t = ui[lang];
+
+/* Fuera de la portada, un ancla suelta no lleva a ninguna parte: en las
+   páginas internas los mismos enlaces se resuelven contra la portada de su
+   idioma. En la portada se dejan tal cual, que es lo que lee el scroll-spy. */
+const base = homePath(lang);
+const enPortada = isHome(Astro.url.pathname, lang);
+const to = (hash: string) => (enPortada ? hash : `${base}${hash}`);
+---
+
+<header class="header" data-header>
+  <div class="shell header__bar">
+    <a
+      class="brand"
+      href={to('#inicio')}
+      data-cursor-hint="link"
+      aria-label={`${site.name}, ${t.header.brandAria}`}
+    >
+      {site.shortName}
+      <span class="brand__sup">{t.header.brandTag}</span>
+    </a>
+
+    {
+      !bare && (
+        <nav class="nav" aria-label={t.header.navAria}>
+          <div class="nav__pod" style={`--pod-items:${nav.length}`}>
+            <span class="nav__glider" aria-hidden="true" />
+            {nav.map((item) => (
+              <a class="nav__link" href={to(item.href)} data-spy-link data-cursor-hint="link">
+                <i aria-hidden="true">{item.index}</i>
+                {item[lang]}
+              </a>
+            ))}
+          </div>
+
+          {/* Selector de idioma. Son dos enlaces a dos páginas reales, no un
+              botón que cambia textos: sin JavaScript también funciona, y cada
+              idioma tiene su URL para compartir. */}
+          <div class="lang" role="group" aria-label={t.header.langAria}>
+            {langs.map((l) => (
+              <a
+                class="lang__link"
+                href={homePath(l)}
+                hreflang={langMeta[l].locale}
+                lang={langMeta[l].locale}
+                aria-current={l === lang ? 'true' : undefined}
+                aria-label={langMeta[l].name}
+                data-cursor-hint="link"
+              >
+                {langMeta[l].label}
+              </a>
+            ))}
+          </div>
+
+          <a class="btn" href={to('#contacto')} data-magnetic data-magnetic-strength="0.22" data-cursor-hint="link">
+            {t.header.cta}
+            <span class="btn__arrow" aria-hidden="true">↗</span>
+          </a>
+        </nav>
+      )
+    }
+
+    {
+      !bare && (
+        <button
+          class="menu-toggle"
+          type="button"
+          data-menu-toggle
+          aria-expanded="false"
+          aria-controls="menu-panel"
+        >
+          {t.header.menu}
+          <span class="menu-toggle__glyph" aria-hidden="true" />
+        </button>
+      )
+    }
+  </div>
+</header>
+
+{
+  !bare && (
+    <div class="menu" id="menu-panel" data-menu-panel>
+      <ul class="menu__list">
+        {[...nav, navContact].map((item, i) => (
+          <li class="menu__item">
+            <a class="menu__link" href={to(item.href)} style={`--i:${i}`}>
+              {item[lang]}
+              <i aria-hidden="true">{item.index}</i>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <div class="menu__foot u-mono">
+        {/* En móvil la nav no se pinta: el selector de idioma vive aquí. */}
+        <div class="lang" role="group" aria-label={t.header.langAria}>
+          {langs.map((l) => (
+            <a
+              class="lang__link"
+              href={homePath(l)}
+              hreflang={langMeta[l].locale}
+              lang={langMeta[l].locale}
+              aria-current={l === lang ? 'true' : undefined}
+              aria-label={langMeta[l].name}
+            >
+              {langMeta[l].label}
+            </a>
+          ))}
+        </div>
+
+        <a class="link link--in" href={`mailto:${site.email}`}>
+          {site.email}
+        </a>
+      </div>
+    </div>
+  )
+}

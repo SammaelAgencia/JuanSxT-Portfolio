@@ -1,0 +1,54 @@
+/* Rótulo de sección: índice + nombre + regla que se dibuja al aparecer. */
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  width: 100%;
+  /* Aire fijo bajo el rótulo: sin él, la regla horizontal choca con la
+     primera línea del bloque siguiente. Se fusiona con el margen superior
+     del hermano, así que no suma espacio donde ya lo hay.                 */
+  margin-block-end: clamp(1.75rem, 3.5vw, 3rem);
+  color: var(--c-bone-mute);
+}
+
+.label__index {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  color: var(--c-ember);
+}
+
+.label__name {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.label__rule {
+  flex: 1;
+  height: var(--bw);
+  background: var(--c-line);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1000ms var(--e-inout) 120ms;
+}
+
+.label[data-inview='true'] .label__rule { transform: scaleX(1); }
+
+/* Cifra fantasma: número enorme, contorneado, detrás del contenido. */
+.ghost-num {
+  position: absolute;
+  font-family: var(--f-display);
+  font-size: clamp(9rem, 30vw, 26rem);
+  font-weight: var(--w-black);
+  line-height: 0.72;
+  letter-spacing: var(--ls-mega);
+  color: transparent;
+  -webkit-text-stroke: 1px var(--c-line);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}

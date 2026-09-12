@@ -1,0 +1,44 @@
+---
+/**
+ * Desenfoque progresivo.
+ *
+ * Ocho capas superpuestas de `backdrop-filter`, cada una con el doble de
+ * desenfoque que la anterior y una máscara desplazada un octavo. Como cada
+ * capa desenfoca lo que ya desenfocaron las de debajo, el efecto se acumula
+ * en rampa: el contenido se disuelve hacia el borde en lugar de cortarse con
+ * una línea dura, que es lo que pasa con un `backdrop-filter` de una sola capa.
+ *
+ * La escalera de desenfoques y las máscaras viven en el CSS
+ * (`styles/components/progressive-blur.css`): aquí sólo se emiten las capas y
+ * los parámetros de la instancia.
+ */
+interface Props {
+  /** Borde hacia el que se intensifica el desenfoque. */
+  side?: 'top' | 'bottom';
+  /** Grosor de la banda. Cualquier medida CSS. */
+  height?: string;
+  /** Desenfoque de la capa más fuerte, en px. Las demás salen de dividirlo. */
+  blur?: number;
+  /** Añade un velo de tinta para sostener el contraste de lo que va encima. */
+  tint?: boolean;
+  class?: string;
+}
+
+const { side = 'top', height, blur, tint = false, class: className } = Astro.props;
+
+/* Ocho capas: menos se nota el escalonado, más no aporta y cuesta GPU. */
+const LAYERS = 8;
+
+const vars = [
+  height && `--pblur-height:${height}`,
+  blur && `--pblur-max:${blur}px`,
+].filter(Boolean).join(';');
+---
+
+<div
+  class:list={['pblur', `pblur--${side}`, tint && 'pblur--tint', className]}
+  style={vars || undefined}
+  aria-hidden="true"
+>
+  {Array.from({ length: LAYERS }, () => <span></span>)}
+</div>

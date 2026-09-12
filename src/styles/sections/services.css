@@ -1,0 +1,153 @@
+/* -----------------------------------------------------------------------------
+   SERVICIOS
+   Acordeón con <details> nativo: funciona sin una línea de JavaScript, es
+   navegable con teclado y el buscador del navegador encuentra el texto cerrado.
+   La cifra enorme en contorno da el peso visual; nada de tarjetas con icono.
+----------------------------------------------------------------------------- */
+
+.services { position: relative; }
+
+.services__list {
+  margin-block-start: clamp(2rem, 5vw, 4rem);
+  border-block-start: var(--bw) solid var(--c-line);
+}
+
+.svc {
+  border-block-end: var(--bw) solid var(--c-line);
+  position: relative;
+}
+
+.svc__summary {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding-block: clamp(1.2rem, 2.4vw, 1.9rem);
+  cursor: pointer;
+  list-style: none;
+  transition: color 380ms var(--e-out);
+}
+
+.svc__summary::-webkit-details-marker { display: none; }
+
+.svc__index {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  color: var(--c-bone-mute);
+  transition: color 380ms var(--e-out);
+}
+
+.svc__title {
+  font-family: var(--f-display);
+  font-size: clamp(1.5rem, 3.2vw, 2.9rem);
+  font-weight: var(--w-medium);
+  line-height: 1.02;
+  letter-spacing: var(--ls-tight);
+  transition: transform 560ms var(--e-out);
+}
+
+.svc[open] .svc__index,
+.svc__summary:hover .svc__index { color: var(--c-ember); }
+.svc__summary:hover .svc__title { transform: translate3d(0.6rem, 0, 0); }
+
+/* Signo +/− dibujado con dos reglas: nada de librería de iconos. */
+.svc__mark {
+  justify-self: end;
+  position: relative;
+  width: 18px;
+  height: 18px;
+}
+.svc__mark::before,
+.svc__mark::after {
+  content: '';
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1px;
+  background: var(--c-bone-soft);
+  transition: transform 480ms var(--e-inout), background-color 380ms var(--e-out);
+}
+.svc__mark::after { transform: rotate(90deg); }
+.svc[open] .svc__mark::after { transform: rotate(0deg); }
+.svc[open] .svc__mark::before,
+.svc[open] .svc__mark::after { background: var(--c-ember); }
+
+.svc__panel {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--sp-sm);
+  padding-block-end: clamp(1.5rem, 3vw, 2.4rem);
+}
+
+.svc__panel > div { grid-column: 2; }
+
+@media (min-width: 900px) {
+  .svc__panel {
+    grid-template-columns: 3rem minmax(0, 1.1fr) minmax(0, 0.9fr);
+  }
+  .svc__panel > div:first-of-type { grid-column: 2; }
+  .svc__panel > div:last-of-type { grid-column: 3; }
+}
+
+.svc__claim {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: var(--t-lead);
+  line-height: 1.28;
+  color: var(--c-bone);
+  margin-block-end: var(--sp-xs);
+}
+
+.svc__body {
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--c-bone-soft);
+  max-width: 38rem;
+}
+
+.svc__deliverables {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-content: start;
+  margin-block-start: var(--sp-sm);
+}
+
+@media (min-width: 900px) {
+  .svc__deliverables { margin-block-start: 0.35rem; }
+}
+
+.svc__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-bone-soft);
+  transition: border-color 320ms var(--e-out), color 320ms var(--e-out);
+}
+.svc__chip::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--c-ember);
+}
+.svc__chip:hover { border-color: var(--c-bone-soft); color: var(--c-bone); }
+
+/* Apertura: la altura se anima con grid-template-rows, que sí es animable
+   y no obliga a medir el contenido con JavaScript.                         */
+@supports (interpolate-size: allow-keywords) {
+  .svc { interpolate-size: allow-keywords; }
+  .svc::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition: block-size 520ms var(--e-inout), content-visibility 520ms allow-discrete;
+  }
+  .svc[open]::details-content { block-size: auto; }
+}

@@ -1,0 +1,45 @@
+Archivos de la pagina del torneo (/pokemon).
+
+  tema.mp3            musica de fondo, en bucle
+  duelo-01..05.webp   laminas del carrusel de "Proximo duelo" (16:9)
+  campeones.png       logo de la lamina "Campeones" (sustituye al titulo)
+  subcampeones.png    logo de la lamina "Subcampeones"
+  coming-soon.png     logo de la tercera lamina
+  campeon-01.png      imagen del primer puesto de la lamina de campeones
+  sprites/*.png       equipo del campeon, ya descargados de PokeAPI
+
+Deja los archivos aqui con esos nombres y ya esta. Los nombres y las rutas se
+cambian en src/data/pokemon.ts (`musica.pista`, `proximoDuelo.laminas` y
+`salonDeLaFama`).
+
+MUSICA
+------
+- mp3 o m4a: son los que reproducen todos los navegadores.
+- Que empiece y termine parecido, porque va en bucle.
+- Suena sola al entrar; si el navegador lo bloquea, arranca con el primer
+  clic o tecla. El volumen sale al 35% (`musica.volumen`).
+- Mientras el archivo no exista, el boton se apaga y avisa ("Sin pista").
+- Vigila el peso: un mp3 de 128 kbps son ~1 MB por minuto, y se descarga en
+  el momento de reproducir, nunca antes.
+
+IMAGENES
+--------
+- Duelos: apaisadas 16:9. 1600x900 va sobrado; .webp pesa la mitad que .jpg.
+- Logos: uno por lamina, cada una lleva el suyo. Si la marca es vectorial,
+  .svg (mas nitido y mas ligero que cualquier mapa de bits); si viene
+  rasterizada, .png o .webp. Se pintan a 4.5 rem de alto como maximo, asi que
+  con 400 px de alto sobra. Si el archivo no esta, el hueco queda vacio.
+- Primer puesto (campeon-01.png): sirve cualquier proporcion, entra entera en
+  la ficha. Para que en cambio llene la ficha y se recorte, pon
+  `ajuste: 'cover'` en ese puesto dentro de src/data/pokemon.ts.
+- Las laminas de duelo si muestran una placa con el nombre del archivo que
+  falta; nunca se ve una imagen rota.
+
+SPRITES
+-------
+Los seis del equipo (Sceptile, Milotic, Primeape, Metagross, Alakazam,
+Venomoth) estan descargados de PokeAPI en sprites/ y se sirven desde aqui:
+la pagina no le pide ninguna imagen a un servidor de terceros. Son de 96 px
+y se pintan sin suavizar. Para cambiar uno, bajalo de
+https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/<id>.png
+y actualiza `equipoCampeon` en src/data/pokemon.ts.

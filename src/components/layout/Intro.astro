@@ -1,0 +1,21 @@
+---
+/**
+ * Cortina de entrada. Cubre el primer paint mientras cargan las tipografías
+ * y desaparece sola. Si el JS no llega, `.no-js` la oculta y no bloquea nada.
+ */
+import { site, siteCopy } from '@data/site';
+import { langOf } from '@i18n';
+
+const lang = langOf(Astro.url.pathname);
+---
+
+<div class="intro" data-intro aria-hidden="true">
+  <p class="intro__mark">{site.shortName}</p>
+
+  <div class="intro__foot">
+    <span class="u-mono">{siteCopy[lang].role}</span>
+    <span class="intro__count" data-intro-count>000</span>
+  </div>
+
+  <span class="intro__bar"></span>
+</div>

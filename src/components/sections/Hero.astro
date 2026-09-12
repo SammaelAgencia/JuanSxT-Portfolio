@@ -1,0 +1,76 @@
+---
+import { site, siteCopy } from '@data/site';
+import { ui } from '@data/ui';
+import { langOf } from '@i18n';
+import SplitText from '@components/ui/SplitText.astro';
+
+const lang = langOf(Astro.url.pathname);
+const copy = siteCopy[lang];
+const t = ui[lang];
+---
+
+<section class="hero" id="inicio" data-field data-inview="true">
+  <!-- Campo reactivo: retícula de puntos + campo de líneas + foco que sigue
+       al puntero. El lienzo va dentro del campo a propósito: hereda su
+       máscara y el foco lo enciende por `plus-lighter` sin capas extra. -->
+  <div class="field" aria-hidden="true">
+    <div class="field__waves" data-waves></div>
+    <div class="field__spot" data-field-spot></div>
+  </div>
+
+  <div class="shell hero__body">
+    <div class="hero__eyebrow">
+      <span class="pill">
+        <span class="pill__dot" aria-hidden="true"></span>
+        {copy.availability.label}
+      </span>
+      <span class="u-mono">{copy.availability.detail}</span>
+      <span class="u-mono">{copy.location}</span>
+    </div>
+
+    <SplitText as="h1" class="hero__title" lines={t.hero.title} />
+
+    <div class="hero__aside" data-reveal style="--reveal-delay:520ms">
+      <div class="hero__stamp">
+        <b>{String(site.yearsExperience).padStart(2, '0')}<span class="u-serif">+</span></b>
+        <span class="u-mono">{t.hero.stamp}</span>
+      </div>
+    </div>
+
+    <p class="hero__lead u-lead" data-reveal style="--reveal-delay:420ms">
+      {t.hero.lead}
+    </p>
+  </div>
+
+  <div class="shell">
+    <div class="hero__foot" data-reveal style="--reveal-delay:640ms">
+      <dl class="hero__meta">
+        <dt>{t.hero.mail}</dt>
+        <dd class="copy">
+          <button
+            type="button"
+            class="link link--in"
+            data-copy={site.email}
+            data-copy-done={t.contact.copyStatus}
+            data-cursor-hint="copy"
+            data-cursor-label={t.contact.copy}
+          >
+            {site.email}
+          </button>
+          <span class="copy__flag" aria-hidden="true">{t.contact.copied}</span>
+          <span class="visually-hidden" role="status" aria-live="polite" data-copy-status></span>
+        </dd>
+      </dl>
+
+      <p class="hero__scroll" aria-hidden="true">
+        <i></i>
+        {t.hero.scroll}
+      </p>
+
+      <dl class="hero__meta">
+        <dt>{t.hero.focus}</dt>
+        <dd>{t.hero.focusValue}</dd>
+      </dl>
+    </div>
+  </div>
+</section>

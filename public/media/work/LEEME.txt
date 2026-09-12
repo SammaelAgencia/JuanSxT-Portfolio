@@ -1,0 +1,7 @@
+Deja aquí las imágenes y los vídeos de los proyectos.
+Los nombres exactos y las proporciones están en la tabla del README.md
+(sección "2. Imágenes y vídeo pendientes").
+
+Mientras un archivo no exista, el sitio muestra una placa técnica con el
+nombre que espera. No hay que tocar código para activarlo: basta con soltar
+el archivo con ese nombre.

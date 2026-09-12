@@ -1,0 +1,114 @@
+/* -----------------------------------------------------------------------------
+   CONTACTO
+   Bloque invertido (blanco sobre tinta) para cerrar. El contraste hace de
+   señal: es lo único claro de la página, así que es donde va el ojo.
+----------------------------------------------------------------------------- */
+
+.contact {
+  position: relative;
+  background: var(--c-ink);
+  color: var(--c-bone);
+  overflow: hidden;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+}
+
+.contact__inner {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  align-items: end;
+}
+
+.contact__eyebrow {
+  grid-column: 1 / -1;
+  margin-block-end: clamp(1.5rem, 4vw, 3rem);
+}
+
+/* Titular gigantesco: es el ancla visual del final de la página. */
+.contact__title {
+  grid-column: 1 / -1;
+  font-family: var(--f-display);
+  font-size: var(--t-d2);
+  font-weight: var(--w-bold);
+  line-height: 0.86;
+  letter-spacing: var(--ls-mega);
+}
+
+.contact__title em {
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-weight: var(--w-book);
+  /* Compensación óptica y su interlineado neutro: ver --t-em en tokens.css. */
+  font-size: var(--t-em);
+  line-height: 0;
+  color: var(--c-ember);
+}
+
+.contact__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-block-start: clamp(2rem, 4vw, 3rem);
+}
+
+/* Correo a tamaño de titular: se puede pulsar o copiar. */
+.contact__mail {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-block-start: clamp(1.5rem, 3vw, 2.2rem);
+  font-family: var(--f-display);
+  font-size: clamp(1.25rem, 3.4vw, 2.4rem);
+  font-weight: var(--w-medium);
+  letter-spacing: var(--ls-tight);
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+.contact__channels {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--sp-md);
+  margin-block-start: clamp(2.5rem, 6vw, 4.5rem);
+  padding-block-start: var(--sp-md);
+  border-block-start: var(--bw) solid var(--c-line);
+}
+
+.channel { display: grid; gap: 0.4rem; align-content: start; }
+
+.channel dt {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+.channel dd { font-size: var(--t-small); color: var(--c-bone); }
+
+.channel a { display: inline-block; }
+
+/* Marca de agua tipográfica al fondo: da profundidad sin imágenes. */
+.contact__wash {
+  position: absolute;
+  left: 50%;
+  bottom: -0.22em;
+  translate: -50% 0;
+  z-index: 0;
+  font-family: var(--f-display);
+  font-size: clamp(6rem, 24vw, 22rem);
+  font-weight: var(--w-black);
+  line-height: 0.7;
+  letter-spacing: var(--ls-mega);
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--c-line);
+  pointer-events: none;
+  user-select: none;
+}
+
+.contact__inner { position: relative; z-index: 1; }

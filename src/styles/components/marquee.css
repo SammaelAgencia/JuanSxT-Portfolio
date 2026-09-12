@@ -1,0 +1,71 @@
+/* -----------------------------------------------------------------------------
+   CINTA EN BUCLE
+   Animación CSS pura sobre `transform`: corre en el hilo del compositor, así
+   que no compite con el scroll. El contenido se duplica y se desplaza -50%,
+   por eso el bucle es perfecto sin JS midiendo nada.
+----------------------------------------------------------------------------- */
+
+.marquee {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding-block: clamp(0.9rem, 2vw, 1.6rem);
+  border-block: var(--bw) solid var(--c-line);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee-run var(--marquee-speed, 34s) linear infinite;
+  will-change: transform;
+}
+
+.marquee:hover .marquee__track { animation-play-state: paused; }
+
+.marquee__group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(1.2rem, 3vw, 2.6rem);
+  padding-inline: clamp(0.6rem, 1.5vw, 1.3rem);
+  font-family: var(--f-display);
+  font-size: clamp(1.5rem, 3.4vw, 3rem);
+  font-weight: var(--w-medium);
+  letter-spacing: var(--ls-tight);
+  line-height: 1;
+  color: var(--c-bone);
+  white-space: nowrap;
+}
+
+/* Alterna relleno y contorno: la cinta no se lee como una lista plana. */
+.marquee__item:nth-child(even) {
+  color: transparent;
+  -webkit-text-stroke: 1px var(--c-bone-mute);
+}
+
+.marquee__sep {
+  color: var(--c-ember);
+  font-family: var(--f-sans);
+  font-size: 0.4em;
+  -webkit-text-stroke: 0;
+}
+
+.marquee--tilt {
+  transform: rotate(-1.6deg) scaleX(1.04);
+  border-color: var(--c-line-strong);
+  background: var(--c-ink-raise);
+}
+
+.marquee--reverse .marquee__track { animation-direction: reverse; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track { animation: none; }
+  .marquee { mask-image: none; -webkit-mask-image: none; }
+}

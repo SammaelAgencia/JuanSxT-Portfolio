@@ -1,0 +1,92 @@
+/* Cortina de entrada. Cubre el primer paint mientras cargan las tipografías. */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-loader);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: var(--gutter);
+  background: var(--c-ink-sink);
+  color: var(--c-bone);
+  pointer-events: none;
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 900ms var(--e-inout) 120ms;
+}
+
+.intro__mark {
+  align-self: center;
+  justify-self: center;
+  font-family: var(--f-display);
+  font-size: clamp(3rem, 14vw, 11rem);
+  font-weight: var(--w-bold);
+  line-height: 0.86;
+  letter-spacing: var(--ls-mega);
+  text-align: center;
+  /* La marca se descubre de abajo hacia arriba conforme sube el contador. */
+  background: linear-gradient(
+    to top,
+    var(--c-bone) 0%,
+    var(--c-bone) calc(var(--intro-progress, 0) * 100%),
+    color-mix(in oklab, var(--c-bone) 16%, transparent) calc(var(--intro-progress, 0) * 100%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.intro__foot {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  color: var(--c-bone-mute);
+}
+
+.intro__count {
+  font-family: var(--f-mono);
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: var(--w-light);
+  letter-spacing: -0.04em;
+  line-height: 0.8;
+  color: var(--c-bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.intro__bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--c-ember);
+  transform: scaleX(var(--intro-progress, 0));
+  transform-origin: left;
+}
+
+[data-intro-done] .intro {
+  clip-path: inset(0 0 100% 0);
+}
+
+/* El contenido entra desde una escala mínima: da profundidad sin marear. */
+.page-shell {
+  transform: scale(1.014);
+  opacity: 0;
+  transition:
+    transform 1100ms var(--e-out) 200ms,
+    opacity 700ms var(--e-out) 200ms;
+}
+
+[data-intro-done] .page-shell,
+.no-js .page-shell {
+  transform: none;
+  opacity: 1;
+}
+
+/* Sin JS nunca llega `data-intro-done`: la cortina no debe existir. */
+.no-js .intro { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro { display: none; }
+  .page-shell { transform: none; opacity: 1; transition: none; }
+}

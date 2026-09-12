@@ -1,0 +1,321 @@
+/* -----------------------------------------------------------------------------
+   TRABAJO — baraja de proyectos
+   Cada ficha lleva su título, su imagen y su descripción juntos.
+
+   Las fichas son hermanas dentro de un mismo contenedor y cada una se ancla
+   (`sticky`) un escalón más abajo que la anterior. Como el bloque contenedor
+   es la lista entera, ninguna se despega al pasar: se van montando unas sobre
+   otras y al final del recorrido el mazo está completo, con el canto de todas
+   a la vista.
+
+   Es `position: sticky` puro: sin JavaScript, sin animación ligada al scroll
+   y sin nada que recalcular por frame. La profundidad sale de tres cosas
+   estáticas — el escalón, una escala mínima por posición y un velo — que el
+   navegador resuelve una sola vez.
+----------------------------------------------------------------------------- */
+
+.work { position: relative; }
+
+.work__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-block-end: clamp(2rem, 5vw, 3.5rem);
+}
+
+.work__count {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+/* --- La baraja --------------------------------------------------------- */
+.pieces {
+  --piece-top: clamp(4rem, 8vh, 5.5rem);
+  /* Escalón entre fichas ancladas: cada una queda un poco más abajo que la
+     anterior, y ese sobrante es el canto que sigue viéndose del mazo. */
+  --piece-step: 1.05rem;
+  /* Alto de la ficha activa. Manda sobre todo lo demás: fija la proporción
+     de la tarjeta y el recorrido de scroll de cada proyecto. */
+  --piece-height: 70vh;
+  /* Separación extra entre fichas. En escritorio es 0: el recorrido ya lo da
+     el propio alto de la tarjeta, y cualquier hueco aquí se ve como un vacío
+     entre una y la siguiente. */
+  --piece-gap: clamp(1.25rem, 4vw, 2rem);
+  /* Cola de la lista: el recorrido durante el que el mazo completo se queda
+     quieto antes de soltarse. Va como espacio del contenedor, nunca como
+     margen de la última ficha — ver la nota en el bloque de escritorio. */
+  --piece-tail: 0px;
+
+  display: grid;
+  gap: 0;
+}
+
+.piece {
+  position: relative;
+  padding-inline: var(--gutter);
+  margin-block-end: var(--piece-gap);
+}
+
+.piece__card {
+  position: relative;
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.6rem) clamp(1.5rem, 3vw, 2.5rem);
+  padding: clamp(1.15rem, 2.2vw, 1.9rem);
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-lg);
+  background: var(--c-ink-raise);
+  box-shadow: var(--shadow-lift);
+  overflow: hidden;
+  isolation: isolate;
+  transform-origin: 50% 0%;
+
+  grid-template-areas:
+    'meta'
+    'media'
+    'text';
+}
+
+/* Filo de color propio de cada proyecto: al amontonarse se distinguen. */
+.piece__card::before {
+  content: '';
+  position: absolute;
+  inset-inline: clamp(1.15rem, 2.2vw, 1.9rem);
+  top: 0;
+  height: 2px;
+  background: var(--piece-accent, var(--c-ember));
+  border-radius: 0 0 var(--r-pill) var(--r-pill);
+  z-index: 2;
+}
+
+/* Velo que oscurece la ficha cuando queda debajo de la siguiente.
+   Se anima sólo la opacidad: es composición pura, no repintado. */
+.piece__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: var(--c-ink-sink);
+  opacity: 0;
+}
+
+/* --- Contenido de la ficha --------------------------------------------- */
+.piece__meta {
+  grid-area: meta;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-sm);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+.piece__num { color: var(--piece-accent, var(--c-ember)); }
+.piece__client { flex: 1; }
+.piece__year { font-variant-numeric: tabular-nums; }
+
+/* Bloque de texto: título, descripción, resultado y etiquetas van juntos y
+   se centran frente a la imagen. Antes el título quedaba arriba y las
+   etiquetas abajo, y con textos cortos se abría un hueco muerto en medio. */
+.piece__text {
+  grid-area: text;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(0.85rem, 1.6vw, 1.4rem);
+  min-width: 0;
+}
+
+.piece__title {
+  font-family: var(--f-display);
+  /* Con la ficha a 70vh sobra alto: el titular puede crecer y llenar la
+     columna en lugar de flotar en medio de un bloque vacío. */
+  font-size: clamp(1.9rem, 5vw, 4.2rem);
+  font-weight: var(--w-medium);
+  line-height: 0.98;
+  letter-spacing: var(--ls-tight);
+  text-wrap: balance;
+  max-width: 14ch;
+}
+
+.piece__media {
+  grid-area: media;
+  border-radius: var(--r-md);
+}
+
+.piece__summary {
+  max-width: 42rem;
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--c-bone-soft);
+}
+
+/* Resultado: una sola línea, marcada, para que no se lea como más texto. */
+.piece__outcome {
+  position: relative;
+  padding-inline-start: var(--sp-sm);
+  border-inline-start: 2px solid var(--piece-accent, var(--c-ember));
+  font-size: var(--t-small);
+  line-height: 1.45;
+  color: var(--c-bone);
+}
+
+.piece__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-block-start: 0.35rem;
+}
+
+/* --- Escritorio: dos columnas y apilado real --------------------------- */
+@media (min-width: 900px) {
+  .piece__card {
+    /* La imagen se lleva más ancho al crecer el alto: así conserva una
+       proporción cercana a 4:3 en vez de volverse un cuadrado. */
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'meta media'
+      'text media';
+  }
+
+  .piece__media {
+    /* El alto lo manda la ficha, no la imagen: `aspect-ratio: auto` y estirar.
+       Así las cinco tarjetas del mazo miden exactamente lo mismo aunque las
+       imágenes originales no coincidan, y el recorte lo resuelve el
+       `object-fit: cover` del <img>.
+       `MediaSlot` escribe la proporción como estilo en línea y eso gana a
+       cualquier selector, por eso `aspect-ratio` se anula aquí directamente.
+       En móvil sigue mandando la proporción propia del proyecto. */
+    aspect-ratio: auto;
+    align-self: stretch;
+    height: 100%;
+  }
+}
+
+/* El apilado necesita alto de sobra: en pantallas bajas o estrechas las
+   fichas van una tras otra, sin pegarse. */
+@media (min-width: 900px) and (min-height: 620px) {
+  .pieces { --piece-gap: 0px; }
+
+  .piece {
+    position: sticky;
+    top: calc(var(--piece-top) + var(--i) * var(--piece-step));
+  }
+
+  /* Alto fijo de la ficha activa. Es también el recorrido de scroll por
+     proyecto: al no haber separación entre fichas, la siguiente entra justo
+     cuando la anterior termina. */
+  .piece__card { min-height: var(--piece-height); }
+
+  /* Cola de la baraja: mantiene el mazo completo en pantalla un momento
+     antes de que se suelte.
+
+     Va como un elemento vacío al final de la lista, NO como margen de la
+     última ficha. El rectángulo que confina un elemento `sticky` es el de su
+     bloque contenedor menos los márgenes del propio elemento: un
+     `margin-block-end` en la última tarjeta le recorta ese margen de recorrido
+     y la suelta antes de tiempo, con lo que se sube por encima del resto del
+     mazo en vez de esperarlo. Como espacio del contenedor, en cambio, alarga
+     el recorrido de todas por igual. */
+  .pieces { --piece-tail: clamp(4rem, 22vh, 15rem); }
+
+  .pieces::after {
+    content: '';
+    display: block;
+    height: var(--piece-tail);
+  }
+
+  /* Escala mínima por posición en el mazo: la de arriba (la última) queda a
+     tamaño real y las de debajo retroceden un pelo. Es un valor fijo, no una
+     animación: no cuesta nada y basta para que el mazo tenga profundidad.
+     Con el origen arriba, el canto que asoma no se mueve de sitio. */
+  .piece__card {
+    transform: scale(calc(1 - (var(--last) - var(--i)) * 0.011));
+  }
+
+  /* Y se oscurecen en la misma proporción, para que el canto más hondo del
+     mazo sea también el más apagado. */
+  .piece__veil {
+    opacity: calc((var(--last) - var(--i)) * 0.075);
+  }
+}
+
+/* Entrada a la escena. La tarjeta entera es clicable —de eso avisa el cursor
+   con la etiqueta «Ver»—, así que este botón no repite la acción por gusto:
+   es lo único de la ficha que se puede tabular y pulsar sin puntero. */
+.piece__open {
+  align-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-start: 0.35rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--r-pill);
+  background: var(--c-glass);
+  box-shadow: var(--shadow-glass);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone);
+  transition: color var(--d-fast) var(--e-out);
+}
+
+.piece__open:hover,
+.piece__open:focus-visible { color: var(--c-ember); }
+.piece__open:hover .btn__arrow { transform: translate3d(3px, -3px, 0); }
+
+/* --- Pie de sección ---------------------------------------------------- */
+.work__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-block-start: clamp(2.5rem, 5vw, 4rem);
+  padding-block-start: var(--sp-md);
+  border-block-start: var(--bw) solid var(--c-line);
+  color: var(--c-bone-soft);
+  font-size: var(--t-small);
+}
+
+/* --- Etiqueta de disciplina (compartida) ------------------------------- */
+.index__tag {
+  padding: 0.22rem 0.6rem;
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-pill);
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-bone-soft);
+  white-space: nowrap;
+}
+
+/* Sin apilado: las fichas se leen en columna, con aire entre ellas. */
+@media (prefers-reduced-motion: reduce) {
+  /* Sin apilado no hay nada que sostener: la cola sobra. */
+  .pieces { --piece-tail: 0px; }
+
+  .piece {
+    position: relative;
+    top: auto;
+    margin-block-end: clamp(1.25rem, 4vw, 2rem);
+  }
+  .piece__card { transform: none; }
+  .piece__veil { opacity: 0; }
+}
+
+@media (max-width: 899px), (max-height: 619px) {
+  .piece { margin-block-end: clamp(1.25rem, 4vw, 2rem); }
+}

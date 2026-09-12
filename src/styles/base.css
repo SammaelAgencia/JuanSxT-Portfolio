@@ -1,0 +1,95 @@
+/* Capa base: aplica los tokens a los elementos del documento. */
+
+html {
+  background: var(--c-ink);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--c-ink);
+  color: var(--c-bone);
+  font-family: var(--f-sans);
+  font-size: var(--t-body);
+  font-weight: var(--w-book);
+  line-height: var(--lh-prose);
+  letter-spacing: var(--ls-snug);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+/* El scroll horizontal es el error #1 en layouts asimétricos: se corta aquí. */
+html, body { max-width: 100%; }
+
+::selection {
+  background: var(--c-selection-bg);
+  color: var(--c-selection-fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-ember);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+
+/* Barra de scroll discreta, no oculta (accesibilidad). */
+@supports (scrollbar-width: thin) {
+  html { scrollbar-width: thin; scrollbar-color: var(--c-line-strong) transparent; }
+}
+
+/* --------------------------------------------------------- TIPOGRAFÍA -- */
+.u-display {
+  font-family: var(--f-display);
+  font-weight: var(--w-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  font-optical-sizing: auto;
+}
+
+.u-serif {
+  font-family: var(--f-serif);
+  font-weight: var(--w-book);
+  font-style: italic;
+  letter-spacing: 0;
+}
+
+.u-mono {
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  font-weight: var(--w-medium);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.u-lead {
+  font-size: var(--t-lead);
+  line-height: 1.42;
+  color: var(--c-bone-soft);
+  letter-spacing: var(--ls-snug);
+}
+
+/* ---------------------------------------------------- SUPERFICIE / GRANO --
+   Ruido generado por CSS (0 requests, 0 imágenes). Fijo, no repinta al hacer
+   scroll porque vive en su propia capa compuesta.                           */
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: var(--z-content);
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  will-change: transform;
+  animation: grain-shift 6s steps(6) infinite;
+  /* `layout paint` aísla la capa sin aplicar contención de tamaño, que
+     colapsaría el elemento a 0x0 pese a los insets negativos. */
+  contain: layout paint;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain { animation: none; }
+}

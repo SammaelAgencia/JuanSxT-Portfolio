@@ -1,0 +1,354 @@
+---
+import Base from '@layouts/Base.astro';
+import SplitText from '@components/ui/SplitText.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import {
+  torneo,
+  pestanasTorneo,
+  reglas,
+  proximoDuelo,
+  salonDeLaFama,
+  leaderboardTitulo,
+  leaderboardTablero,
+} from '@data/pokemon';
+
+/** Iniciales para cuando un campeón no tiene foto. */
+function iniciales(nombre: string): string {
+  const palabras = nombre.split(/\s+/).filter((p) => /[a-záéíóúñ]/i.test(p));
+  if (palabras.length > 1) return palabras.slice(0, 2).map((p) => p[0]!).join('').toUpperCase();
+  return (palabras[0] ?? nombre).slice(0, 2).toUpperCase();
+}
+---
+
+{/* `bare`: aquí no se pinta la navegación del sitio, sólo la marca para
+    volver. `noindex`: a esta página no se llega por enlace ni por buscador. */}
+<Base title={torneo.title} description={torneo.description} bare noindex>
+  <section class="torneo" id="torneo">
+    {/* El escenario acota el fondo animado: empieza arriba del todo y termina
+        justo debajo del menú. `field.ts` y `waves.ts` buscan estos atributos,
+        no la sección del hero, así que funciona aquí sin tocar JavaScript. */}
+    <div class="torneo__stage" data-field data-inview="true">
+      <div class="field" aria-hidden="true">
+        <div class="field__waves" data-waves></div>
+        <div class="field__spot" data-field-spot></div>
+      </div>
+
+      <div class="shell torneo__head">
+        <div class="torneo__eyebrow" data-reveal>
+          <span class="u-mono">{torneo.eyebrow}</span>
+
+          {/* Música de fondo. Arranca sola; si el navegador lo impide, con el
+              primer clic o tecla. El botón es el mando para silenciarla. */}
+          <button
+            type="button"
+            class="torneo__sound"
+            aria-pressed="false"
+            data-sound-toggle
+            data-cursor-hint="link"
+          >
+            <span class="torneo__sound-wave" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span data-sound-label>Música</span>
+          </button>
+          <audio data-sound loop preload="none" src={torneo.musica.pista}></audio>
+        </div>
+
+        <SplitText as="h1" class="torneo__title" lines={[...torneo.titulo]} />
+
+        <p class="torneo__note" data-reveal style="--reveal-delay:220ms">{torneo.nota}</p>
+
+        <div class="torneo__tabs" role="tablist" aria-label="Secciones del torneo" data-tabs>
+          {
+            pestanasTorneo.map((tab, i) => (
+              <button
+                type="button"
+                class="torneo__tab"
+                role="tab"
+                id={`tab-${tab.id}`}
+                aria-controls={`panel-${tab.id}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                tabindex={i === 0 ? 0 : -1}
+                style={`--i:${i}`}
+                data-reveal
+                data-cursor-hint="link"
+              >
+                <i aria-hidden="true">{tab.index}</i>
+                {tab.label}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="shell torneo__panels">
+      {/* --------------------------------------------------------- REGLAS -- */}
+      <div
+        class="torneo__panel"
+        role="tabpanel"
+        id="panel-reglas"
+        aria-labelledby="tab-reglas"
+        tabindex="0"
+      >
+        <div class="reglas">
+          {
+            reglas.map((grupo) => (
+              <section class="reglas__grupo" data-reveal>
+                <h2 class="reglas__titulo">
+                  <i aria-hidden="true">{grupo.index}</i>
+                  {grupo.title}
+                </h2>
+                <dl class="reglas__lista">
+                  {grupo.items.map((item) => (
+                    <div class="reglas__item">
+                      <dt>{item.label}</dt>
+                      <dd>
+                        {item.body}
+                        {item.lista && (
+                          <ul class="reglas__sub">
+                            {item.lista.map((punto) => (
+                              <li>{punto}</li>
+                            ))}
+                          </ul>
+                        )}
+                        {item.ejemplo && (
+                          <p class="reglas__ejemplo">
+                            <b class="u-mono">Ejemplo</b>
+                            {item.ejemplo}
+                          </p>
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            ))
+          }
+        </div>
+      </div>
+
+      {/* -------------------------------------------------- PRÓXIMO DUELO -- */}
+      <div
+        class="torneo__panel"
+        role="tabpanel"
+        id="panel-proximo-duelo"
+        aria-labelledby="tab-proximo-duelo"
+        tabindex="0"
+        hidden
+      >
+        <div class="slider duelo" data-slider>
+          <div
+            class="slider__track"
+            data-slider-track
+            tabindex="0"
+            role="group"
+            aria-label="Láminas del próximo duelo"
+          >
+            {
+              proximoDuelo.laminas.map((lamina) => (
+                <figure class="slider__slide duelo__lamina">
+                  <MediaSlot
+                    src={lamina.imagen}
+                    alt={lamina.alt}
+                    ratio={proximoDuelo.ratio}
+                    tag={lamina.tag}
+                    width={1600}
+                    height={900}
+                    class="duelo__media"
+                  />
+                  <figcaption class="duelo__texto">{lamina.texto}</figcaption>
+                </figure>
+              ))
+            }
+          </div>
+
+          <div class="slider__nav">
+            <button type="button" class="slider__arrow" data-slider-prev aria-label="Lámina anterior">
+              <span aria-hidden="true">←</span>
+            </button>
+            <ul class="slider__dots">
+              {
+                proximoDuelo.laminas.map((lamina, i) => (
+                  <li>
+                    <button
+                      type="button"
+                      class="slider__dot"
+                      data-slider-dot
+                      aria-current={i === 0 ? 'true' : 'false'}
+                      aria-label={`Ir a ${lamina.tag ?? `la lámina ${i + 1}`}`}
+                    />
+                  </li>
+                ))
+              }
+            </ul>
+            <button type="button" class="slider__arrow" data-slider-next aria-label="Lámina siguiente">
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ----------------------------------------------- SALÓN DE LA FAMA -- */}
+      <div
+        class="torneo__panel"
+        role="tabpanel"
+        id="panel-salon-de-la-fama"
+        aria-labelledby="tab-salon-de-la-fama"
+        tabindex="0"
+        hidden
+      >
+        <div class="slider" data-slider>
+          <div
+            class="slider__track"
+            data-slider-track
+            tabindex="0"
+            role="group"
+            aria-label="Láminas del salón de la fama"
+          >
+            {
+              salonDeLaFama.map((lamina) => (
+                <section class="slider__slide salon__lamina">
+                  {lamina.logo ? (
+                    <div class="salon__brand">
+                      <img
+                        class="salon__logo"
+                        src={lamina.logo}
+                        alt={lamina.titulo}
+                        loading="lazy"
+                        decoding="async"
+                        onerror="this.remove()"
+                      />
+                    </div>
+                  ) : (
+                    <h2 class="salon__titulo">{lamina.titulo}</h2>
+                  )}
+
+                  {lamina.campeones ? (
+                    <ul class="salon">
+                      {lamina.campeones.map((campeon, i) => {
+                        /* El sprite manda sobre el retrato: se pinta entero y
+                           sin suavizar. Un puesto es «libre» sólo cuando no
+                           tiene ni nombre ni imagen. */
+                        const imagen = campeon.sprite ?? campeon.foto;
+                        const libre = !campeon.nombre && !imagen;
+
+                        return (
+                          <li
+                            class="salon__card"
+                            style={`--i:${i}`}
+                            data-libre={libre ? '' : undefined}
+                            data-sprite={campeon.sprite ? '' : undefined}
+                          >
+                            <div class="salon__photo">
+                              {/* Queda debajo de la imagen: si el archivo aún
+                                  no está, la ficha no se ve rota. */}
+                              <span class="salon__initials" aria-hidden="true">
+                                {campeon.nombre ? iniciales(campeon.nombre) : '—'}
+                              </span>
+
+                              {imagen && (
+                                <img
+                                  src={imagen}
+                                  alt={campeon.nombre ?? campeon.temporada ?? ''}
+                                  style={`--fit:${campeon.ajuste ?? 'cover'}`}
+                                  width={campeon.sprite ? 96 : 320}
+                                  height={campeon.sprite ? 96 : 420}
+                                  loading="lazy"
+                                  decoding="async"
+                                  onerror="this.remove()"
+                                />
+                              )}
+
+                              {campeon.temporada && (
+                                <span class="salon__season u-mono">{campeon.temporada}</span>
+                              )}
+                            </div>
+
+                            {(campeon.nombre || libre) && (
+                              <p class="salon__name">{campeon.nombre ?? 'Puesto libre'}</p>
+                            )}
+                            {(campeon.lema || libre) && (
+                              <p class="salon__lema">{campeon.lema ?? 'Temporada sin campeón'}</p>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <div class="salon__soon">
+                      <p class="salon__soon-title">Coming soon</p>
+                      {lamina.nota && <p class="salon__soon-note">{lamina.nota}</p>}
+                    </div>
+                  )}
+                </section>
+              ))
+            }
+          </div>
+
+          <div class="slider__nav">
+            <button type="button" class="slider__arrow" data-slider-prev aria-label="Lámina anterior">
+              <span aria-hidden="true">←</span>
+            </button>
+            <ul class="slider__dots">
+              {
+                salonDeLaFama.map((lamina) => (
+                  <li>
+                    <button
+                      type="button"
+                      class="slider__dot"
+                      data-slider-dot
+                      aria-label={`Ir a ${lamina.titulo}`}
+                    />
+                  </li>
+                ))
+              }
+            </ul>
+            <button type="button" class="slider__arrow" data-slider-next aria-label="Lámina siguiente">
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------------------------------------------------- LEADERBOARD -- */}
+      <div
+        class="torneo__panel"
+        role="tabpanel"
+        id="panel-leaderboard"
+        aria-labelledby="tab-leaderboard"
+        tabindex="0"
+        hidden
+      >
+        <h2 class="board__titulo">{leaderboardTitulo}</h2>
+
+        {/* La puntuación la lleva un tablero externo: aquí sólo se enseña su
+            lámina y se enlaza. `noopener` porque abre en pestaña nueva. */}
+        <a
+          class="board"
+          href={leaderboardTablero.href}
+          target="_blank"
+          rel="noopener"
+        >
+          <img
+            class="board__shot"
+            src={leaderboardTablero.preview}
+            alt={leaderboardTablero.alt}
+            width="1200"
+            height="630"
+            loading="lazy"
+            decoding="async"
+          />
+          <span class="board__bar">
+            <span class="board__meta">
+              <b class="board__nombre">{leaderboardTitulo}</b>
+              <i class="board__fuente u-mono">{leaderboardTablero.fuente}</i>
+            </span>
+            <span class="board__cta u-mono">
+              {leaderboardTablero.cta}
+              <span aria-hidden="true">→</span>
+            </span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>

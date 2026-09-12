@@ -1,0 +1,93 @@
+---
+/**
+ * Hueco de imagen con placa técnica de reserva.
+ *
+ * Mientras el archivo no exista, `onerror` retira el <img> y queda visible una
+ * placa con el nombre y la proporción que espera ese hueco. Al soltar el
+ * archivo en /public/media/ la imagen aparece sin tocar una línea de código.
+ *
+ * `ratio` reserva el espacio desde el primer paint: no hay salto de layout.
+ */
+import { ui } from '@data/ui';
+import { langOf } from '@i18n';
+
+interface Props {
+  src?: string;
+  alt: string;
+  ratio?: string;
+  /** Texto de la cinta superpuesta (opcional). */
+  tag?: string;
+  /** Clip opcional (mp4). Se reproduce al pasar el puntero por la ficha. */
+  motion?: string;
+  /** La primera imagen visible debe cargarse con prioridad. */
+  eager?: boolean;
+  class?: string;
+  /** Ancho/alto intrínsecos para el ratio de decodificación del navegador. */
+  width?: number;
+  height?: number;
+}
+
+const {
+  src,
+  alt,
+  ratio = '4 / 3',
+  tag,
+  motion,
+  eager = false,
+  class: className,
+  width = 1200,
+  height = 900,
+} = Astro.props;
+
+const file = src?.split('/').pop() ?? 'pendiente.webp';
+const plate = ui[langOf(Astro.url.pathname)].media.plate;
+---
+
+<figure
+  class:list={['slot', className]}
+  style={`--slot-ratio:${ratio}`}
+  data-motion={motion ? '' : undefined}
+>
+  <div class="slot__plate" aria-hidden="true">
+    <b>{plate}</b>
+    <small>{file}</small>
+    <small>{ratio.replace(/\s/g, '')}</small>
+  </div>
+
+  {
+    src && (
+      <img
+        class="slot__img"
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        fetchpriority={eager ? 'high' : 'auto'}
+        onerror="this.remove()"
+      />
+    )
+  }
+
+  {
+    motion && (
+      /* `preload="none"`: el archivo NO se descarga al cargar la página.
+         La descarga arranca en el primer hover real sobre la ficha. */
+      <video
+        class="slot__video"
+        src={motion}
+        width={width}
+        height={height}
+        muted
+        loop
+        playsinline
+        preload="none"
+        tabindex="-1"
+        aria-hidden="true"
+      />
+    )
+  }
+
+  {tag && <figcaption class="slot__tag">{tag}</figcaption>}
+</figure>

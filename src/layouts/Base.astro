@@ -1,0 +1,126 @@
+---
+import '@styles/index.css';
+import { site, siteCopy } from '@data/site';
+import { ui } from '@data/ui';
+import { langOf, langMeta, langs, homePath } from '@i18n';
+import Intro from '@components/layout/Intro.astro';
+import Cursor from '@components/layout/Cursor.astro';
+import Header from '@components/layout/Header.astro';
+import ProgressiveBlur from '@components/ui/ProgressiveBlur.astro';
+import Footer from '@components/layout/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Páginas internas a las que no se llega por enlace: fuera del índice. */
+  noindex?: boolean;
+  /** Cabecera sin navegación de sitio: sólo la marca para volver. */
+  bare?: boolean;
+}
+
+/* El idioma sale de la ruta: /en/ en inglés, todo lo demás en español. No hace
+   falta pasarlo de componente en componente. */
+const lang = langOf(Astro.url.pathname);
+const copy = siteCopy[lang];
+const t = ui[lang];
+
+const {
+  title = copy.title,
+  description = copy.description,
+  noindex = false,
+  bare = false,
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).toString();
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  jobTitle: copy.jobTitle,
+  email: `mailto:${site.email}`,
+  telephone: site.phone,
+  url: site.url,
+  address: { '@type': 'PostalAddress', addressLocality: 'Bello', addressRegion: 'Antioquia', addressCountry: 'CO' },
+  sameAs: ['https://behance.net/jpstdraws', 'https://artstation.com/juansierratejada'],
+  knowsAbout: ['Diseño UI', 'Diseño UX', 'Identidad de marca', 'Ilustración digital', 'Motion graphics'],
+};
+---
+
+<!doctype html>
+<html lang={langMeta[lang].locale} class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    {/* Las dos versiones del sitio principal se declaran una a la otra. En una
+        página interna (noindex) no hay traducción que anunciar. */}
+    {
+      !noindex && (
+        <>
+          {langs.map((l) => (
+            <link
+              rel="alternate"
+              hreflang={langMeta[l].locale}
+              href={new URL(homePath(l), Astro.site ?? site.url).toString()}
+            />
+          ))}
+          <link
+            rel="alternate"
+            hreflang="x-default"
+            href={new URL(homePath('es'), Astro.site ?? site.url).toString()}
+          />
+        </>
+      )
+    }
+
+    <meta name="author" content={site.name} />
+    <meta name="theme-color" content="#0b0405" />
+    <meta name="color-scheme" content="dark" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content={langMeta[lang].og} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(site.ogImage, site.url).toString()} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+    {/* Marca que el JS está vivo antes del primer paint: evita el parpadeo
+        de la cortina de entrada en navegadores sin scripts. */}
+    <script is:inline>
+      document.documentElement.classList.remove('no-js');
+    </script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#contenido">{t.skip}</a>
+
+    <Intro />
+    <Cursor />
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="page-shell">
+      <Header bare={bare} />
+      <main id="contenido">
+        <slot />
+      </main>
+      <Footer />
+      {/* Va dentro de `.page-shell` y por debajo de la nav: disuelve el
+          contenido contra el borde inferior de la ventana. */}
+      <ProgressiveBlur side="bottom" />
+    </div>
+
+    <script>
+      import '@scripts/main';
+    </script>
+  </body>
+</html>

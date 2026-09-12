@@ -1,0 +1,128 @@
+/* -----------------------------------------------------------------------------
+   PROCESO
+   Cinco paneles que se apilan con `position: sticky`. Es scroll nativo del
+   navegador: no hay listener, no hay medición, no hay coste por frame.
+----------------------------------------------------------------------------- */
+
+.process {
+  position: relative;
+  background: var(--c-ink-sink);
+}
+
+.process__intro {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  margin-block-end: clamp(2.5rem, 6vw, 5rem);
+}
+
+.process__lede {
+  grid-column: 1 / -1;
+  font-family: var(--f-display);
+  font-size: var(--t-h2);
+  font-weight: var(--w-medium);
+  line-height: 1.06;
+  letter-spacing: var(--ls-tight);
+}
+
+@media (min-width: 900px) {
+  .process__lede { grid-column: 1 / 9; }
+}
+
+.stack-cards {
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.step {
+  position: sticky;
+  /* Cada panel se pega un poco más abajo que el anterior: al apilarse deja
+     ver el borde superior del que quedó debajo.                            */
+  top: calc(6rem + var(--i, 0) * 2.2rem);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  align-items: start;
+  padding: clamp(1.5rem, 3.5vw, 2.8rem);
+  border: var(--bw) solid var(--c-line-strong);
+  border-radius: var(--r-lg);
+  background: var(--c-ink);
+  box-shadow: var(--shadow-lift);
+}
+
+/* Un filo de color por paso: se distinguen de un vistazo al apilarse. */
+.step::before {
+  content: '';
+  position: absolute;
+  inset-inline: clamp(1.5rem, 3.5vw, 2.8rem);
+  top: 0;
+  height: 2px;
+  background: var(--step-accent, var(--c-ember));
+  border-radius: 0 0 var(--r-pill) var(--r-pill);
+}
+
+.step__num {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-sm);
+  font-family: var(--f-mono);
+  font-size: var(--t-meta);
+  letter-spacing: var(--ls-meta);
+  text-transform: uppercase;
+  color: var(--c-bone-mute);
+}
+
+.step__num b {
+  font-family: var(--f-display);
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: var(--w-bold);
+  line-height: 0.8;
+  letter-spacing: var(--ls-mega);
+  color: var(--step-accent, var(--c-ember));
+}
+
+/* Un escalón por debajo de --t-h1: el título más largo de las cinco fases
+   —«Entregar y acompañar»— cabe en una sola línea dentro de su carril. */
+.step__title {
+  grid-column: 1 / -1;
+  font-family: var(--f-display);
+  font-size: var(--t-h2);
+  font-weight: var(--w-medium);
+  line-height: 1;
+  letter-spacing: var(--ls-tight);
+  margin-block-start: var(--sp-sm);
+  text-wrap: balance;
+}
+
+.step__body {
+  grid-column: 1 / -1;
+  max-width: 34rem;
+  margin-block-start: var(--sp-sm);
+  color: var(--c-bone-soft);
+  font-size: var(--t-small);
+  line-height: 1.6;
+}
+
+@media (min-width: 900px) {
+  .step__num { grid-column: 1 / 4; }
+  /* Una columna más de carril para el título: entre eso y el cuerpo más
+     pequeño, ninguna de las cinco fases se parte en dos. */
+  .step__title { grid-column: 4 / 9; margin-block-start: 0; }
+  .step__body {
+    grid-column: 9 / -1;
+    margin-block-start: 0;
+    /* Si aun así un título se va a dos líneas, la descripción se queda en el
+       centro del panel en vez de colgar del borde de arriba. */
+    align-self: center;
+  }
+}
+
+/* En pantallas bajas el apilado pegajoso estorba: se desactiva. */
+@media (max-height: 640px), (max-width: 640px) {
+  .step { position: relative; top: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step { position: relative; top: auto; }
+}

@@ -1,0 +1,19 @@
+---
+/**
+ * Cursor a medida: un disco que invierte lo que tiene debajo.
+ *
+ * El disco va rezagado respecto al puntero y el punto va exacto sobre él.
+ * Ambos usan `mix-blend-mode: difference`, así que el punto invierte a su vez
+ * la inversión del disco y se lee como un agujero que deja ver el color real
+ * de la página. Sirve de mira precisa sin romper el efecto.
+ *
+ * Sólo se enciende cuando el script confirma que hay un puntero fino; en
+ * táctil nunca se pinta.
+ */
+---
+
+<div class="cursor cursor__disc" data-cursor-disc aria-hidden="true">
+  <span class="cursor__label" data-cursor-label></span>
+  <span class="cursor__x"></span>
+</div>
+<div class="cursor cursor__dot" data-cursor-dot aria-hidden="true"></div>

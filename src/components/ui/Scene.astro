@@ -1,0 +1,81 @@
+---
+/**
+ * Escena de proyecto: la ficha a pantalla completa.
+ *
+ * Se renderiza en el build, una por proyecto, y arranca con `display: none`.
+ * Eso no es sólo para esconderla: dentro de un elemento sin caja el
+ * `loading="lazy"` de las imágenes nunca dispara, así que las tres capturas de
+ * cada proyecto no se descargan hasta que alguien abre la escena. El script
+ * (`scripts/scene.ts`) la monta un frame antes de abrirla.
+ *
+ * La columna izquierda no se mueve; la derecha es la única que hace scroll.
+ */
+import type { Project } from '@data/projects';
+import { ui } from '@data/ui';
+import { langOf } from '@i18n';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+
+interface Props {
+  project: Project;
+  index: number;
+  /** Color del filo, ya resuelto por la sección que la invoca. */
+  accent: string;
+}
+
+const { project, index, accent } = Astro.props;
+
+const lang = langOf(Astro.url.pathname);
+const t = ui[lang].work;
+const copy = project[lang];
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const shots = project.gallery ?? [project.cover];
+const id = `escena-${project.id}`;
+---
+
+<article
+  class="scene"
+  id={id}
+  data-scene
+  data-lenis-prevent
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby={`${id}-titulo`}
+  style={`--piece-accent:${accent}`}
+>
+  <div class="scene__aside">
+    <p class="scene__meta">
+      <span class="scene__num">{pad(index + 1)}</span>
+      <span class="scene__client">{project.client}</span>
+      <span>{project.year}</span>
+    </p>
+
+    <h2 class="scene__title" id={`${id}-titulo`}>{copy.title}</h2>
+
+    <p class="scene__summary">{copy.summary}</p>
+    <p class="scene__outcome">{copy.outcome}</p>
+
+    <ul class="scene__tags">
+      {copy.discipline.map((d) => <li class="index__tag">{d}</li>)}
+    </ul>
+  </div>
+
+  <div class="scene__reel" data-reel>
+    {
+      shots.map((src, i) => (
+        <MediaSlot
+          class="scene__shot"
+          src={src}
+          alt={`${copy.title} — ${t.shot} ${i + 1} ${t.of} ${shots.length}`}
+          ratio={project.ratio}
+          tag={`${pad(i + 1)} / ${pad(shots.length)}`}
+        />
+      ))
+    }
+  </div>
+
+  <button class="scene__close" type="button" data-scene-close>
+    {t.back}
+    <span class="scene__close-glyph" aria-hidden="true"></span>
+  </button>
+</article>

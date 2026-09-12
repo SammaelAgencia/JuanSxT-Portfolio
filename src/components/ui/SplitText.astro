@@ -1,0 +1,81 @@
+---
+/**
+ * Divide un texto para animarlo por líneas o por palabras.
+ *
+ * El corte se hace en el servidor (build), así que el HTML llega ya troceado:
+ * el navegador no mide nada ni reescribe el DOM al cargar. La animación la
+ * decide el CSS a partir de `data-inview`, que pone el observador global.
+ *
+ * Sintaxis del texto: rodea una palabra con *asteriscos* para ponerla en
+ * cursiva de acento.  Ej.:  'Interfaces que *se sostienen*'
+ */
+interface Props {
+  /** Modo "lines": cada entrada del array es una línea con máscara propia. */
+  lines?: string[];
+  /** Modo "words": el texto se enciende palabra por palabra. */
+  text?: string;
+  /** Etiqueta contenedora. */
+  as?: keyof HTMLElementTagNameMap;
+  class?: string;
+  /** Retraso extra antes de que arranque el revelado. */
+  delay?: number;
+}
+
+const { lines, text, as: Tag = 'span', class: className, delay = 0 }: Props = Astro.props;
+
+/** Convierte *palabra* en <em>palabra</em> sin permitir HTML arbitrario. */
+function parse(raw: string): { value: string; em: boolean }[] {
+  return raw
+    .split(/(\*[^*]+\*)/g)
+    .filter(Boolean)
+    .map((chunk) =>
+      chunk.startsWith('*') && chunk.endsWith('*')
+        ? { value: chunk.slice(1, -1), em: true }
+        : { value: chunk, em: false },
+    );
+}
+
+/**
+ * Aplana el texto a una lista de palabras con su posición REAL en la frase.
+ * El índice debe ser continuo: si se reiniciara en cada tramo con cursiva,
+ * el escalonado del revelado daría un salto en mitad del párrafo.
+ */
+const words = text
+  ? parse(text).flatMap((part) =>
+      part.value
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((word) => ({ word, em: part.em })),
+    )
+  : [];
+
+const style = delay ? `--reveal-delay:${delay}ms` : undefined;
+---
+
+{
+  lines && (
+    <Tag class:list={['split', className]} data-reveal="lines" style={style}>
+      {lines.map((line, i) => (
+        <span class="split__line">
+          <span class="split__inner" style={`--i:${i}`}>
+            {parse(line).map((part) => (part.em ? <em>{part.value}</em> : part.value))}
+          </span>
+        </span>
+      ))}
+    </Tag>
+  )
+}
+
+{
+  text && !lines && (
+    <Tag class:list={['split split--words', className]} data-reveal="words" style={style}>
+      {words.map(({ word, em }, i) => (
+        <>
+          <span class="split__word" style={`--i:${i}`}>
+            {em ? <em>{word}</em> : word}
+          </span>{' '}
+        </>
+      ))}
+    </Tag>
+  )
+}

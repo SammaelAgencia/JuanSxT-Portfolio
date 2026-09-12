@@ -1,0 +1,126 @@
+/* -----------------------------------------------------------------------------
+   DESENFOQUE PROGRESIVO
+   Ocho capas de `backdrop-filter`. El desenfoque dobla en cada una y la máscara
+   avanza un octavo, así que sólo la última capa —la más fuerte— llega al borde.
+   Como cada capa desenfoca lo ya desenfocado por las de abajo, el resultado es
+   una rampa continua en vez del corte seco de un `backdrop-filter` normal.
+
+   Coste: `backdrop-filter` se recompone en cada frame de scroll. Por eso la
+   banda es estrecha, se apaga cuando no hace falta y no se pinta en móvil.
+----------------------------------------------------------------------------- */
+
+.pblur {
+  --pblur-height: clamp(6.25rem, 13vh, 9.75rem);
+  --pblur-max: 12px;
+  --pblur-saturate: 118%;
+  --pblur-dir: to top;
+
+  position: fixed;
+  inset-inline: 0;
+  z-index: calc(var(--z-nav) - 1);
+  height: var(--pblur-height);
+  pointer-events: none;
+}
+
+.pblur--top { top: 0; }
+
+.pblur--bottom {
+  bottom: 0;
+  --pblur-dir: to bottom;
+}
+
+.pblur > span {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(var(--b)) saturate(var(--pblur-saturate));
+  -webkit-backdrop-filter: blur(var(--b)) saturate(var(--pblur-saturate));
+  mask-image: linear-gradient(
+    var(--pblur-dir),
+    transparent 0%,
+    transparent var(--from),
+    #000 var(--to),
+    #000 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    var(--pblur-dir),
+    transparent 0%,
+    transparent var(--from),
+    #000 var(--to),
+    #000 100%
+  );
+}
+
+/* La escalera. Cada capa dobla el desenfoque de la anterior y su máscara
+   empieza un octavo más adelante, de modo que la más fuerte sólo cubre la
+   franja pegada al borde. */
+.pblur > span:nth-child(1) { --b: calc(var(--pblur-max) / 128); --from: 0%;    --to: 12.5%; }
+.pblur > span:nth-child(2) { --b: calc(var(--pblur-max) / 64);  --from: 12.5%; --to: 25%; }
+.pblur > span:nth-child(3) { --b: calc(var(--pblur-max) / 32);  --from: 25%;   --to: 37.5%; }
+.pblur > span:nth-child(4) { --b: calc(var(--pblur-max) / 16);  --from: 37.5%; --to: 50%; }
+.pblur > span:nth-child(5) { --b: calc(var(--pblur-max) / 8);   --from: 50%;   --to: 62.5%; }
+.pblur > span:nth-child(6) { --b: calc(var(--pblur-max) / 4);   --from: 62.5%; --to: 75%; }
+.pblur > span:nth-child(7) { --b: calc(var(--pblur-max) / 2);   --from: 75%;   --to: 87.5%; }
+.pblur > span:nth-child(8) { --b: var(--pblur-max);             --from: 87.5%; --to: 100%; }
+
+/* Velo de tinta con la misma rampa. Sostiene el contraste de lo que va encima
+   —la cabecera— también sobre el bloque claro de contacto. Usa la tinta de
+   :root a propósito: no debe invertirse dentro de una sección en claro. */
+.pblur--tint::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Mismo eje que las máscaras, paradas al revés: en `to top` el 0% es el
+     borde de abajo, así que la tinta densa va al final para acabar pegada al
+     borde hacia el que crece el desenfoque. */
+  background: linear-gradient(
+    var(--pblur-dir),
+    transparent 0%,
+    color-mix(in oklab, #0b0405 30%, transparent) 55%,
+    color-mix(in oklab, #0b0405 72%, transparent) 100%
+  );
+}
+
+/* --- Encendido -----------------------------------------------------------
+   Arriba del todo no hay nada que disolver, así que la banda no existe: sin
+   `visibility` el navegador seguiría recomponiendo ocho backdrops por frame. */
+.pblur--top {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 420ms var(--e-out), visibility 0s linear 420ms;
+}
+
+[data-scrolled] .pblur--top {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 420ms var(--e-out), visibility 0s linear 0s;
+}
+
+/* Al asomar el pie, la banda de abajo sobra: ya no queda contenido que
+   disolver y taparía lo único que falta por leer. Se apaga con la misma
+   pareja de siempre —`opacity` para la transición, `visibility` para dejar de
+   recomponer los ocho backdrops—, y quien pone el atributo es el observador
+   del pie en `scripts/chrome.ts`. */
+.pblur--bottom {
+  transition: opacity 420ms var(--e-out), visibility 0s linear 0s;
+}
+
+[data-at-footer] .pblur--bottom {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 420ms var(--e-out), visibility 0s linear 420ms;
+}
+
+/* En móvil el coste no compensa: ocho backdrops sobre una banda que ocupa
+   media pantalla es justo lo que hace tartamudear el scroll en gama media. */
+@media (max-width: 899px) {
+  .pblur > span { display: none; }
+  .pblur--tint::after {
+    background: linear-gradient(var(--pblur-dir), transparent 0%, var(--c-ink) 100%);
+  }
+  .pblur { --pblur-height: clamp(5.25rem, 11vh, 6.75rem); }
+}
+
+/* Sin soporte de `backdrop-filter` queda sólo el velo, que ya cumple. */
+@supports not (backdrop-filter: blur(1px)) {
+  .pblur > span { display: none; }
+}

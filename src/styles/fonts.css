@@ -1,0 +1,47 @@
+/* -----------------------------------------------------------------------------
+   FUENTES — auto-alojadas. Nada de peticiones a terceros.
+
+     Salty Ages     → titulares            public/fonts/titulos.woff2
+     Berkelium Sans → texto e interfaz     public/fonts/parrafos.woff2
+     Gothicfed      → palabras acentuadas  public/fonts/enfasis.woff2
+     Geist Mono     → etiquetas, cifras y meta. Sigue viniendo de Fontsource,
+                      que trae `unicode-range` y así sólo baja el latino.
+
+   Las tres propias son ESTÁTICAS, de un único peso.
+
+   `font-weight: 100 900` no las convierte en variables: le dice al navegador
+   que esa cara cubre cualquier peso que le pidan. Sin ese rango, un
+   `font-weight: 700` del CSS haría que el navegador fabricase una negrita
+   falsa engordando los contornos, que en una tipografía de display se nota
+   como un borrón. Con el rango declarado no sintetiza nada y el peso real es
+   siempre el del archivo.
+
+   Misma idea con `font-style: italic` en la de énfasis: el archivo no está
+   inclinado, y declararlo así evita que el navegador lo incline él por su
+   cuenta al encontrarse un <em>.
+----------------------------------------------------------------------------- */
+@import '@fontsource-variable/geist-mono/wght.css';
+
+@font-face {
+  font-family: 'Salty Ages';
+  src: url('/fonts/titulos.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Berkelium Sans';
+  src: url('/fonts/parrafos.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gothicfed';
+  src: url('/fonts/enfasis.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}

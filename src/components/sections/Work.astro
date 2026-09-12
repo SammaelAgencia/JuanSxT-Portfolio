@@ -1,0 +1,122 @@
+---
+import { projects } from '@data/projects';
+import { ui } from '@data/ui';
+import { langOf, homePath, isHome } from '@i18n';
+import Label from '@components/ui/Label.astro';
+import MediaSlot from '@components/ui/MediaSlot.astro';
+import Scene from '@components/ui/Scene.astro';
+
+const lang = langOf(Astro.url.pathname);
+const t = ui[lang];
+const contacto = isHome(Astro.url.pathname, lang) ? '#contacto' : `${homePath(lang)}#contacto`;
+
+const accents: Record<string, string> = {
+  ember: 'var(--c-ember)',
+  ultra: 'var(--c-ultra)',
+  lime: 'var(--c-lime)',
+  clay: 'var(--c-clay)',
+};
+---
+
+<section class="section work" id="trabajo">
+  <div class="shell">
+    <Label index="02" name={t.work.label} />
+
+    <div class="work__head">
+      <p class="work__count u-mono">
+        {String(projects.length).padStart(2, '0')} {t.work.projects}
+      </p>
+      <p class="u-mono">{t.work.span}</p>
+    </div>
+  </div>
+
+  <!--
+    Baraja de proyectos. Las fichas son hermanas dentro de un mismo contenedor
+    y cada una se pega (`sticky`) un poco más abajo que la anterior, así que
+    ninguna se despega hasta el final: se van montando unas sobre otras y al
+    llegar abajo el mazo está completo, con el canto de todas a la vista.
+
+    Es `position: sticky` puro, sin una sola línea de JavaScript ni animación
+    ligada al scroll. El navegador lo resuelve en el compositor.
+  -->
+  <ol class="pieces" style={`--last:${projects.length - 1}`}>
+    {
+      projects.map((project, i) => {
+        const copy = project[lang];
+        return (
+          <li
+            class="piece"
+            style={`--i:${i}; --piece-accent:${accents[project.accent ?? 'ember']}`}
+          >
+            <article
+              class="piece__card"
+              data-piece-open={`escena-${project.id}`}
+              data-cursor-hint="view"
+              data-cursor-label={t.work.cursor}
+            >
+              <p class="piece__meta">
+                <span class="piece__num">{String(i + 1).padStart(2, '0')}</span>
+                <span class="piece__client">{project.client}</span>
+                <span class="piece__year">{project.year}</span>
+              </p>
+
+              <MediaSlot
+                class="piece__media"
+                src={project.cover}
+                alt={`${copy.title} — ${project.client}`}
+                ratio={project.ratio}
+                motion={project.motion}
+                eager={i === 0}
+              />
+
+              <div class="piece__text">
+                <h3 class="piece__title">{copy.title}</h3>
+                <p class="piece__summary">{copy.summary}</p>
+                <p class="piece__outcome">{copy.outcome}</p>
+                <ul class="piece__tags">
+                  {copy.discipline.map((d) => (
+                    <li class="index__tag">{d}</li>
+                  ))}
+                </ul>
+
+                {/* La tarjeta entera abre la escena, pero un <div> no se tabula:
+                    este botón es el control real para teclado y lectores. */}
+                <button
+                  class="piece__open"
+                  type="button"
+                  data-piece-open={`escena-${project.id}`}
+                >
+                  {t.work.open}
+                  <span class="btn__arrow" aria-hidden="true">↗</span>
+                </button>
+              </div>
+
+              <span class="piece__veil" aria-hidden="true" />
+            </article>
+          </li>
+        );
+      })
+    }
+  </ol>
+
+  <div class="shell">
+    <div class="work__foot" data-reveal>
+      <p>{t.work.note}</p>
+      <a class="btn btn--ghost" href={contacto} data-magnetic data-cursor-hint="link">
+        {t.work.cta}
+        <span class="btn__arrow" aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+{/*
+  Las escenas viven fuera de <section>: en escritorio `.piece__card` lleva un
+  `transform`, y un ancestro transformado convierte cualquier `position: fixed`
+  de dentro en una caja anclada a la tarjeta en vez de a la ventana.
+*/}
+{
+  projects.map((project, i) => (
+    <Scene project={project} index={i} accent={accents[project.accent ?? 'ember']} />
+  ))
+}

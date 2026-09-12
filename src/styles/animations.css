@@ -1,0 +1,118 @@
+/* Fotogramas clave y primitivas de revelado.
+   Todo se apoya en transform/opacity: nunca dispara layout ni paint costoso. */
+
+@keyframes grain-shift {
+  0%   { transform: translate3d(0, 0, 0); }
+  20%  { transform: translate3d(-6%, 4%, 0); }
+  40%  { transform: translate3d(4%, -5%, 0); }
+  60%  { transform: translate3d(-3%, 6%, 0); }
+  80%  { transform: translate3d(6%, 2%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes marquee-run {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.82); }
+}
+
+@keyframes blink-caret {
+  0%, 45%  { opacity: 1; }
+  55%, 100%{ opacity: 0; }
+}
+
+/* ------------------------------------------------------------- REVELADO --
+   Un solo IntersectionObserver marca data-inview="true". El CSS decide la
+   forma del revelado; el JS no toca estilos inline.                        */
+
+[data-reveal] {
+  --reveal-y: 1.4rem;
+  --reveal-delay: 0ms;
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-y), 0);
+  transition:
+    opacity var(--d-reveal) var(--e-out) var(--reveal-delay),
+    transform var(--d-reveal) var(--e-out) var(--reveal-delay);
+  will-change: opacity, transform;
+}
+
+[data-reveal][data-inview='true'] {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* En los splits anima el hijo, nunca el contenedor: si el bloque entero
+   se desvaneciera, el escalonado por línea o palabra no se vería. */
+[data-reveal='lines'],
+[data-reveal='words'] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+[data-reveal='mask'] {
+  --reveal-y: 0;
+  clip-path: inset(0 0 100% 0);
+  opacity: 1;
+  transform: none;
+  transition: clip-path var(--d-reveal) var(--e-inout) var(--reveal-delay);
+}
+[data-reveal='mask'][data-inview='true'] { clip-path: inset(0 0 0 0); }
+
+[data-reveal='scale'] {
+  --reveal-y: 2rem;
+  transform: translate3d(0, var(--reveal-y), 0) scale(1.06);
+}
+[data-reveal='scale'][data-inview='true'] { transform: none; }
+
+/* --------------------------------------------- LÍNEAS DE TEXTO EN MÁSCARA --
+   <SplitText> envuelve cada línea/palabra; aquí sólo se anima el hijo.      */
+.split { display: block; }
+
+.split__line {
+  display: block;
+  overflow: hidden;
+  padding-block-end: 0.08em;
+  margin-block-end: -0.08em;
+}
+
+.split__inner {
+  display: block;
+  transform: translate3d(0, 110%, 0) rotate(2.5deg);
+  transform-origin: left top;
+  transition: transform var(--d-reveal) var(--e-out);
+  transition-delay: calc(var(--i, 0) * 70ms + var(--reveal-delay, 0ms));
+}
+
+[data-inview='true'] .split__inner { transform: none; }
+
+.split--words { display: inline; }
+.split__word {
+  display: inline-block;
+  transition:
+    opacity 520ms var(--e-out),
+    filter 520ms var(--e-out),
+    transform 620ms var(--e-out);
+  transition-delay: calc(var(--i, 0) * 26ms);
+  opacity: 0.14;
+  filter: blur(1px);
+  transform: translate3d(0, 0.22em, 0);
+}
+[data-inview='true'] .split__word {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-reveal='mask'],
+  [data-reveal='scale'] { opacity: 1; transform: none; clip-path: none; }
+  .split__inner { transform: none; }
+  .split__word { opacity: 1; filter: none; transform: none; }
+}

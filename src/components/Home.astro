@@ -1,0 +1,26 @@
+---
+/**
+ * Composición del sitio principal: el orden de las secciones.
+ *
+ * Vive aquí y no en la página porque hay dos páginas —`/` y `/en/`— y una
+ * sección nueva tiene que aparecer en las dos sin tener que acordarse. El
+ * idioma no se pasa: cada sección lo deduce de la ruta.
+ */
+import Hero from '@components/sections/Hero.astro';
+import Manifesto from '@components/sections/Manifesto.astro';
+import Work from '@components/sections/Work.astro';
+import Services from '@components/sections/Services.astro';
+import Process from '@components/sections/Process.astro';
+import Trajectory from '@components/sections/Trajectory.astro';
+import Toolkit from '@components/sections/Toolkit.astro';
+import Contact from '@components/sections/Contact.astro';
+---
+
+<Hero />
+<Manifesto />
+<Work />
+<Services />
+<Process />
+<Trajectory />
+<Toolkit />
+<Contact />
