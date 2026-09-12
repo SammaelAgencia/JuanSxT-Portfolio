@@ -34,6 +34,33 @@ export function initCursor(): void {
      cursor y se pierde el arrastre; más bajo se despega demasiado. */
   const soft = reduceMotion() ? 1 : 0.2;
 
+  /* El bucle se da de baja cuando el disco ya ha alcanzado al puntero, y
+     vuelve al primer movimiento. Sin esto, un cursor parado seguía pidiendo un
+     frame cada 16 ms para escribir dos transforms idénticos: el hilo principal
+     no llegaba a quedarse quieto nunca, ni con la página sin tocar. */
+  let stop: (() => void) | null = null;
+
+  const paso = (dt: number) => {
+    // El punto va pegado al puntero; el disco llega tarde. Ese desfase es
+    // el que da la sensación de peso.
+    dot.style.transform = `translate3d(${tx}px, ${ty}px, 0) translate(-50%, -50%)`;
+    dx = lerp(dx, tx, Math.min(soft * dt, 1));
+    dy = lerp(dy, ty, Math.min(soft * dt, 1));
+    disc.style.transform = `translate3d(${dx}px, ${dy}px, 0) translate(-50%, -50%)`;
+
+    // Medio píxel: por debajo de eso no hay nada que enseñar.
+    if (Math.abs(tx - dx) < 0.5 && Math.abs(ty - dy) < 0.5) {
+      dx = tx;
+      dy = ty;
+      stop?.();
+      stop = null;
+    }
+  };
+
+  const arrancar = () => {
+    if (!stop) stop = onTick(paso);
+  };
+
   window.addEventListener(
     'pointermove',
     (e) => {
@@ -46,6 +73,7 @@ export function initCursor(): void {
         dy = ty;
         root.setAttribute('data-cursor-visible', 'true');
       }
+      arrancar();
     },
     { passive: true },
   );
@@ -55,14 +83,8 @@ export function initCursor(): void {
     visible = false;
   });
 
-  onTick((dt) => {
-    // El punto va pegado al puntero; el disco llega tarde. Ese desfase es
-    // el que da la sensación de peso.
-    dot.style.transform = `translate3d(${tx}px, ${ty}px, 0) translate(-50%, -50%)`;
-    dx = lerp(dx, tx, Math.min(soft * dt, 1));
-    dy = lerp(dy, ty, Math.min(soft * dt, 1));
-    disc.style.transform = `translate3d(${dx}px, ${dy}px, 0) translate(-50%, -50%)`;
-  });
+  // Una pasada para dejar las dos piezas colocadas antes del primer gesto.
+  paso(1);
 
   // --- Estados: delegación de eventos, un solo listener --------------------
   /* Con el candado puesto el estado lo manda otro (la escena de proyecto): el

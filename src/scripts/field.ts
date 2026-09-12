@@ -77,6 +77,7 @@ export function initField(): void {
         cy = ty;
         field.setAttribute('data-field-active', 'true');
       }
+      arrancar();
     },
     { passive: true },
   );
@@ -89,6 +90,12 @@ export function initField(): void {
   /* El bucle no se queda girando con el hero fuera de pantalla: se da de baja
      y se vuelve a registrar al reaparecer, igual que hace el shader. */
   let stop: (() => void) | null = null;
+  let fuera = false;
+
+  function parar() {
+    stop?.();
+    stop = null;
+  }
 
   const paso = (dt: number) => {
     const t = Math.min(0.11 * dt, 1);
@@ -102,22 +109,27 @@ export function initField(): void {
     const ny = alto ? (cy / alto) * 2 - 1 : 0;
     field.style.setProperty('--px', nx.toFixed(3));
     field.style.setProperty('--py', ny.toFixed(3));
+
+    /* Alcanzado el puntero, el bucle se da de baja. Escribir cada 16 ms un
+       transform y dos variables que no cambian mantenía el hilo principal
+       despierto durante toda la visita sin mover un píxel. Vuelve solo al
+       siguiente movimiento. */
+    if (Math.abs(tx - cx) < 0.5 && Math.abs(ty - cy) < 0.5) {
+      cx = tx;
+      cy = ty;
+      parar();
+    }
   };
 
   const arrancar = () => {
-    if (!stop) stop = onTick(paso);
-  };
-
-  const parar = () => {
-    stop?.();
-    stop = null;
+    if (!stop && !fuera) stop = onTick(paso);
   };
 
   arrancar();
 
   const io = new IntersectionObserver(
     ([entry]) => {
-      const fuera = !entry?.isIntersecting;
+      fuera = !entry?.isIntersecting;
       field.toggleAttribute('data-field-idle', fuera);
       if (fuera) parar();
       else arrancar();

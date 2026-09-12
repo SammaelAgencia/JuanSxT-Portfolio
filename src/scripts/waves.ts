@@ -42,7 +42,13 @@ const CFG = {
   brightness: 0.22, //      subir con cuidado: satura y se come el titular
   mouseInfluence: 2.0, //   fuerza del bulto que sigue al puntero
   ease: 0.05, //            amortiguación del puntero
-  maxDpr: 1.25, //          más resolución no se nota y multiplica el coste
+  maxDpr: 1.0, //           más resolución no se nota y multiplica el coste
+  fps: 30, //               el oleaje es lento: a 30 no se distingue y cuesta la mitad
+  minCores: 4, //           por debajo de esto la máquina tiene cosas mejores que hacer
+  aforo: 90, //             frames que se miran antes de juzgar el rendimiento
+  techoMs: 40, //           más de esto por frame (≈25 fps) es que no da la máquina
+  ruinaMs: 70, //           y más de esto no se arregla bajando resolución
+  escalaBaja: 0.7, //       resolución de rescate antes de rendirse
 } as const;
 
 const VERT = `
@@ -190,10 +196,35 @@ function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLSha
   return shader;
 }
 
+type ConexionAhorro = { saveData?: boolean };
+
+/** Máquina que no está para shaders: ahorro de datos activado o pocos núcleos.
+ *  No se mide la GPU aquí —no hay forma honesta de hacerlo antes de pintar—,
+ *  sólo se descartan los casos que ya se saben perdidos. */
+function equipoJusto(): boolean {
+  const nav = navigator as Navigator & { connection?: ConexionAhorro; deviceMemory?: number };
+  if (nav.connection?.saveData) return true;
+  if (typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0 && nav.deviceMemory < 4) return true;
+  const cores = nav.hardwareConcurrency;
+  return typeof cores === 'number' && cores > 0 && cores < CFG.minCores;
+}
+
+/** Rasterizador por software: no hay GPU detrás del contexto WebGL.
+ *  Es el caso de los laboratorios de auditoría y el de las máquinas virtuales,
+ *  y ahí un shader a pantalla completa se paga entero en el hilo principal:
+ *  decenas de milisegundos por frame, durante toda la visita. */
+function sinGpu(gl: WebGLRenderingContext): boolean {
+  const info = gl.getExtension('WEBGL_debug_renderer_info');
+  if (!info) return false;
+  const nombre = String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL) ?? '').toLowerCase();
+  return /swiftshader|llvmpipe|softpipe|software|basic render|generic renderer/.test(nombre);
+}
+
 export function initHeroWaves(): void {
   const host = document.querySelector<HTMLElement>('[data-waves]');
   if (!host) return;
   if (reduceMotion() || !isDesktop()) return;
+  if (equipoJusto()) return;
 
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl', {
@@ -206,6 +237,8 @@ export function initHeroWaves(): void {
   });
   // Sin WebGL la cabecera se queda como estaba: transparente y correcta.
   if (!gl) return;
+  // Con WebGL pero sin GPU, también: más vale nada que un sitio atascado.
+  if (sinGpu(gl)) return;
 
   const vs = compile(gl, gl.VERTEX_SHADER, VERT);
   const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG);
@@ -249,10 +282,13 @@ export function initHeroWaves(): void {
   gl.clearColor(0, 0, 0, 0);
 
   let rect = host.getBoundingClientRect();
+  // Factor de rescate: el vigilante lo baja si la máquina no llega. Las líneas
+  // son suaves, así que un lienzo más pequeño estirado por CSS no se nota.
+  let escala = 1;
 
   const resize = () => {
     rect = host.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, CFG.maxDpr);
+    const dpr = Math.min(window.devicePixelRatio || 1, CFG.maxDpr) * escala;
     const w = Math.max(1, Math.round(rect.width * dpr));
     const h = Math.max(1, Math.round(rect.height * dpr));
     if (canvas.width === w && canvas.height === h) return;
@@ -305,14 +341,79 @@ export function initHeroWaves(): void {
 
   let elapsed = 0;
   let lost = false;
+  let stop: (() => void) | null = null;
 
-  const stop = onTick((dt) => {
-    if (lost || !visible) return;
+  /** Recoge el shader y devuelve el hero a como estaba sin él. */
+  const apagar = () => {
+    stop?.();
+    stop = null;
+    canvas.remove();
+    host.removeAttribute('data-waves-on');
+    ro.disconnect();
+    io.disconnect();
+    window.removeEventListener('scroll', remeasure);
+    window.removeEventListener('pointermove', onPointer);
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+  };
+
+  /* El oleaje va a `CFG.fps`, no al ritmo de la pantalla: a 0.3 de velocidad
+     nadie distingue 30 de 60, y son la mitad de pantallas completas pintadas.
+     El puntero sí se amortigua en cada frame, que eso es aritmética. */
+  const intervalo = 1000 / CFG.fps;
+  let ultimo = 0;
+
+  /* Vigilante de coste. Cronometrar el `drawArrays` no diría nada: la orden se
+     encola y se paga después, al componer. Lo que sí lo dice es cada cuánto
+     vuelve el frame —si el navegador tarda en devolverlo, es que no llega—.
+     Se juzga una vez pasado el arranque: primero se baja la resolución y, si
+     con eso tampoco, el campo se apaga y no vuelve. Esto es lo que impide que
+     una máquina sin GPU real se pase la visita entera con el hilo principal
+     ocupado en un shader que nadie le pidió. */
+  let vistos = 0;
+  let sumaMs = 0;
+  let previo = 0;
+  let rescatado = false;
+  let juzgado = false;
+  const ARRANQUE = 20;
+
+  stop = onTick((dt, now) => {
+    if (lost || !visible) {
+      previo = 0;
+      return;
+    }
+
+    if (!juzgado) {
+      if (previo) {
+        vistos += 1;
+        if (vistos > ARRANQUE) sumaMs += now - previo;
+        if (vistos >= CFG.aforo) {
+          const medio = sumaMs / (vistos - ARRANQUE);
+          if (medio > CFG.ruinaMs || (rescatado && medio > CFG.techoMs)) {
+            juzgado = true;
+            apagar();
+            return;
+          }
+          if (medio > CFG.techoMs) {
+            rescatado = true;
+            escala = CFG.escalaBaja;
+            resize();
+          } else {
+            juzgado = true;
+          }
+          vistos = 0;
+          sumaMs = 0;
+        }
+      }
+      previo = now;
+    }
 
     elapsed += dt * 0.016667;
     const t = Math.min(CFG.ease * dt, 1);
     cx = lerp(cx, tx, t);
     cy = lerp(cy, ty, t);
+
+    if (now - ultimo < intervalo) return;
+    ultimo = now;
 
     gl.uniform1f(uTime, elapsed);
     gl.uniform2f(uMouse, cx, cy);
@@ -326,12 +427,5 @@ export function initHeroWaves(): void {
     host.removeAttribute('data-waves-on');
   });
 
-  window.addEventListener('pagehide', () => {
-    stop();
-    ro.disconnect();
-    io.disconnect();
-    window.removeEventListener('scroll', remeasure);
-    window.removeEventListener('pointermove', onPointer);
-    gl.getExtension('WEBGL_lose_context')?.loseContext();
-  });
+  window.addEventListener('pagehide', apagar);
 }

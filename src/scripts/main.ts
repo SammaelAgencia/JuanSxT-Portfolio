@@ -37,6 +37,13 @@ function idle(fn: () => void): void {
   }
 }
 
+/** Después de `load`, no antes: lo que se monte aquí no compite con el primer
+ *  pintado ni entra en la ventana que mide el bloqueo del hilo principal. */
+function trasCarga(fn: () => void): void {
+  if (document.readyState === 'complete') idle(fn);
+  else window.addEventListener('load', () => idle(fn), { once: true });
+}
+
 function boot(): void {
   // Prioridad alta: se percibe de inmediato.
   initIntro();
@@ -60,9 +67,14 @@ function boot(): void {
     initCardMotion();
     initSecret();
     initMusic();
-    loadHeroWaves();
     loadSmoothScroll();
   });
+
+  /* El shader del hero espera a que la página esté cargada del todo. Compilar
+     el programa y subir la primera pantalla completa de píxeles es el gasto
+     más caro de todo el JavaScript del sitio, y en el arranque compite con
+     el texto y las imágenes que el visitante sí ha venido a ver. */
+  trasCarga(loadHeroWaves);
 }
 
 /** Campo de líneas del hero. Se importa aparte para que el shader no viaje
@@ -91,10 +103,38 @@ async function loadSmoothScroll(): Promise<void> {
      `requestAnimationFrame` recursivo, y copiarlo dejaba dos bucles pidiendo
      frames a la vez: el suyo y el de `env.ts`, que es el que mueve cursor,
      imanes y campo del hero. Dos bucles compitiendo es la causa más común de
-     jank en sitios como este. De regalo, el bucle compartido se apaga cuando
-     la pestaña deja de verse, así que el scroll suave tampoco gasta batería
-     de fondo. */
-  onTick((_dt, now) => lenis.raf(now));
+     jank en sitios como este.
+
+     Y sólo mientras hay scroll que animar. Enganchado de continuo, Lenis pedía
+     un frame cada 16 ms desde que carga la página hasta que se cierra, aunque
+     nadie tocara nada: el hilo principal no llegaba a quedarse quieto en toda
+     la visita. Se engancha al primer gesto y se suelta un cuarto de segundo
+     después de que el desplazamiento se pare. */
+  let soltar: (() => void) | null = null;
+  let ultimoGesto = 0;
+
+  const paso = (_dt: number, now: number) => {
+    lenis.raf(now);
+    if (lenis.isScrolling || lenis.animatedScroll !== lenis.targetScroll) {
+      ultimoGesto = now;
+    } else if (now - ultimoGesto > 250) {
+      soltar?.();
+      soltar = null;
+    }
+  };
+
+  const despertar = () => {
+    ultimoGesto = performance.now();
+    if (!soltar) soltar = onTick(paso);
+  };
+
+  /* En fase de captura: Lenis escucha la rueda también, y cuando le llegue el
+     evento el frame ya tiene que estar pedido. */
+  const gesto = { passive: true, capture: true } as const;
+  window.addEventListener('wheel', despertar, gesto);
+  window.addEventListener('touchstart', despertar, gesto);
+  window.addEventListener('keydown', despertar, gesto);
+  window.addEventListener('resize', despertar, { passive: true });
 
   // Los anclas internas pasan por Lenis para que el desplazamiento sea suave.
   document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {
@@ -104,6 +144,7 @@ async function loadSmoothScroll(): Promise<void> {
       const target = document.querySelector(id);
       if (!target) return;
       e.preventDefault();
+      despertar();
       lenis.scrollTo(target as HTMLElement, { offset: -24 });
     });
   });
