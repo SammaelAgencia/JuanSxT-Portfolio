@@ -56,12 +56,25 @@ export function initIntro(): void {
 
 /* --------------------------------------------------------------- CABECERA --
    Se oculta al bajar y reaparece al subir. La dirección se calcula en el
-   evento de scroll, que es pasivo y no lee layout (sólo scrollY).            */
+   evento de scroll, que es pasivo y sólo lee `scrollY`.
+
+   AQUÍ NO SE LEE NADA AL ARRANCAR. La versión anterior hacía
+   `let last = window.scrollY` al montar, y esa línea sola costaba 100 ms de
+   «redistribución forzada» en la auditoría: se ejecuta en el `DOMContentLoaded`,
+   cuando el documento todavía no ha hecho su primer layout, y preguntar por la
+   posición de scroll obliga al navegador a calcularlo entero en ese mismo
+   instante, dentro de una tarea de JavaScript y antes del primer pintado. El
+   trabajo hay que hacerlo igual, pero dejándoselo al navegador lo hace en su
+   propia fase de render, sin bloquear el hilo ni retrasar la pintura.
+
+   Así que la primera posición se aprende en el primer evento de scroll, que ya
+   llega con el layout limpio y cuesta lo que tiene que costar.               */
 export function initHeader(): void {
   const header = document.querySelector<HTMLElement>('[data-header]');
   if (!header) return;
 
-  let last = window.scrollY;
+  // -1 = «todavía no sé dónde estábamos». El primer evento sólo toma nota.
+  let last = -1;
   let ticking = false;
 
   const root = document.documentElement;
@@ -69,13 +82,22 @@ export function initHeader(): void {
   const update = () => {
     ticking = false;
     const y = window.scrollY;
-    const delta = y - last;
 
     header.toggleAttribute('data-pinned', y > 40);
     // Enciende la banda de desenfoque progresivo anclada arriba. Sobre el
     // primer pliegue no hay nada que disolver y se ahorra recomponer ocho
     // backdrops por frame.
     root.toggleAttribute('data-scrolled', y > 40);
+
+    /* Primera vuelta: se registra la posición y no se decide nada. Importa
+       cuando el navegador restaura el scroll de una recarga a media página:
+       comparar contra un 0 inventado escondería la cabecera de entrada. */
+    if (last < 0) {
+      last = y;
+      return;
+    }
+
+    const delta = y - last;
     if (Math.abs(delta) > 6) {
       header.toggleAttribute('data-hidden', delta > 0 && y > 240);
       last = y;

@@ -65,6 +65,22 @@ motivo principal.
 
 **Formato:** WebP o AVIF, calidad 78–82, peso objetivo < 250 KB cada una.
 
+Las veinte actuales ya están recomprimidas a calidad 82 (3,9 MB → 2,1 MB, sin
+pérdida visible al 100 %; los archivos de antes siguen en el historial de git
+por si acaso). **No se les bajó la resolución a propósito**: se ven a ~705 px
+CSS, así que en una pantalla retina hacen falta los 1200 px que tienen.
+Lighthouse las marca como «mal dimensionadas» porque audita a DPR 1; hacerle
+caso ablandaría el sitio justo en las pantallas donde lo mira un cliente de
+diseño. Si alguna vez quieres cerrar ese aviso del todo, la respuesta es
+`srcset`/`sizes` en `MediaSlot.astro` con dos anchos, no un reescalado.
+
+Para una imagen nueva que venga pesada:
+
+```bash
+ffmpeg -i entrada.webp -c:v libwebp -quality 82 -compression_level 6 \
+       -preset picture salida.webp
+```
+
 ### Movimiento en las previsualizaciones
 
 Si quieres que una ficha muestre movimiento, deja un `.mp4` con el mismo
