@@ -85,6 +85,10 @@
 
   --gutter:      clamp(1.25rem, 4.2vw, 4.5rem);
   --section-y:   clamp(3.65rem, 7.3vw, 7.3rem);
+  /* Aire bajo el rótulo de sección. Es token y no un valor suelto en
+     `label.css` porque hay bloques que necesitan descontarlo para cuadrar su
+     propio centrado — ver `.manifesto__text`.                               */
+  --label-gap:   clamp(1.75rem, 3.5vw, 3rem);
   --max-w:       96rem;   /* ancho útil máximo del lienzo                    */
   --max-prose:   38rem;   /* medida de lectura cómoda                        */
 

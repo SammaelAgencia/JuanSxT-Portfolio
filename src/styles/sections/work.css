@@ -9,9 +9,9 @@
    a la vista.
 
    Es `position: sticky` puro: sin JavaScript, sin animación ligada al scroll
-   y sin nada que recalcular por frame. La profundidad sale de tres cosas
-   estáticas — el escalón, una escala mínima por posición y un velo — que el
-   navegador resuelve una sola vez.
+   y sin nada que recalcular por frame. La profundidad sale de dos cosas
+   estáticas — el escalón y una escala mínima por posición — que el navegador
+   resuelve una sola vez.
 ----------------------------------------------------------------------------- */
 
 .work { position: relative; }
@@ -64,7 +64,13 @@
 .piece__card {
   position: relative;
   width: 100%;
-  max-width: var(--max-w);
+  /* El tope NO es `--max-w` a secas. La baraja va a sangre —`.piece` pone el
+     margen por su cuenta— mientras que el rótulo y la cabecera viven en un
+     `.shell`, cuya caja de contenido es `--max-w` MENOS los dos márgenes.
+     Igualar los dos anchos aquí es lo que alinea la ficha con el rótulo; con
+     `--max-w` pelado la tarjeta sobresalía un margen por cada lado en cuanto
+     la ventana pasaba de los 96rem.                                          */
+  max-width: calc(var(--max-w) - var(--gutter) * 2);
   margin-inline: auto;
   display: grid;
   gap: clamp(1rem, 2vw, 1.6rem) clamp(1.5rem, 3vw, 2.5rem);
@@ -93,17 +99,6 @@
   background: var(--piece-accent, var(--c-ember));
   border-radius: 0 0 var(--r-pill) var(--r-pill);
   z-index: 2;
-}
-
-/* Velo que oscurece la ficha cuando queda debajo de la siguiente.
-   Se anima sólo la opacidad: es composición pura, no repintado. */
-.piece__veil {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  background: var(--c-ink-sink);
-  opacity: 0;
 }
 
 /* --- Contenido de la ficha --------------------------------------------- */
@@ -238,15 +233,18 @@
   /* Escala mínima por posición en el mazo: la de arriba (la última) queda a
      tamaño real y las de debajo retroceden un pelo. Es un valor fijo, no una
      animación: no cuesta nada y basta para que el mazo tenga profundidad.
-     Con el origen arriba, el canto que asoma no se mueve de sitio. */
+     Con el origen arriba, el canto que asoma no se mueve de sitio.
+
+     Lo que NO se graduaba bien era el brillo. Aquí había un velo con la misma
+     fórmula —la primera ficha al 0.3 de negro y la última a cero—, y como es
+     un valor fijo por posición, la primera nacía apagada aunque en ese momento
+     no tuviera ninguna encima: se leía como un error de contraste, no como
+     profundidad. Oscurecer de verdad sólo mientras algo tapa pide saber cuánto
+     llevas de recorrido, y eso el CSS no lo sabe sin atarse al scroll. La
+     escala basta: es geometría, y el ojo la perdona aunque llegue antes de
+     tiempo.                                                                 */
   .piece__card {
     transform: scale(calc(1 - (var(--last) - var(--i)) * 0.011));
-  }
-
-  /* Y se oscurecen en la misma proporción, para que el canto más hondo del
-     mazo sea también el más apagado. */
-  .piece__veil {
-    opacity: calc((var(--last) - var(--i)) * 0.075);
   }
 }
 
@@ -275,20 +273,6 @@
 .piece__open:focus-visible { color: var(--c-ember); }
 .piece__open:hover .btn__arrow { transform: translate3d(3px, -3px, 0); }
 
-/* --- Pie de sección ---------------------------------------------------- */
-.work__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-md);
-  margin-block-start: clamp(2.5rem, 5vw, 4rem);
-  padding-block-start: var(--sp-md);
-  border-block-start: var(--bw) solid var(--c-line);
-  color: var(--c-bone-soft);
-  font-size: var(--t-small);
-}
-
 /* --- Etiqueta de disciplina (compartida) ------------------------------- */
 .index__tag {
   padding: 0.22rem 0.6rem;
@@ -313,7 +297,6 @@
     margin-block-end: clamp(1.25rem, 4vw, 2rem);
   }
   .piece__card { transform: none; }
-  .piece__veil { opacity: 0; }
 }
 
 @media (max-width: 899px), (max-height: 619px) {

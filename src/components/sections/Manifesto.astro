@@ -11,7 +11,7 @@ const t = ui[langOf(Astro.url.pathname)].manifesto;
   <span class="ghost-num" aria-hidden="true">01</span>
 
   <div class="shell">
-    <Label index="01" name={t.label} />
+    <Label name={t.label} />
 
     <SplitText as="p" class="manifesto__text" text={t.text} />
   </div>

@@ -9,25 +9,8 @@
   background: var(--c-ink-sink);
 }
 
-.process__intro {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--grid-gap);
-  margin-block-end: clamp(2.5rem, 6vw, 5rem);
-}
-
-.process__lede {
-  grid-column: 1 / -1;
-  font-family: var(--f-display);
-  font-size: var(--t-h2);
-  font-weight: var(--w-medium);
-  line-height: 1.06;
-  letter-spacing: var(--ls-tight);
-}
-
-@media (min-width: 900px) {
-  .process__lede { grid-column: 1 / 9; }
-}
+/* El lede de la sección es el titular del rótulo (`Label title=…`): va sobre
+   la misma línea que el nombre, no en un bloque aparte. */
 
 .stack-cards {
   display: grid;

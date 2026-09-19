@@ -49,8 +49,6 @@ const es = {
     span: '2017 — 2026',
     open: 'Ver proyecto',
     cursor: 'Ver',
-    note: 'Cada ficha resume un área de trabajo. Los archivos, las versiones y el porqué de cada decisión los enseño en llamada.',
-    cta: 'Pedir el portafolio completo',
     /** Escena a pantalla completa. */
     back: 'Volver',
     shot: 'imagen',
@@ -128,8 +126,6 @@ const en: typeof es = {
     span: '2017 — 2026',
     open: 'View project',
     cursor: 'View',
-    note: 'Each card sums up one area of work. The files, the iterations and the reasoning behind every decision I walk through on a call.',
-    cta: 'Ask for the full portfolio',
     back: 'Back',
     shot: 'image',
     of: 'of',

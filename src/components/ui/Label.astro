@@ -1,15 +1,22 @@
 ---
-/** Rótulo de sección: índice, nombre y una regla que se dibuja al aparecer. */
+/**
+ * Rótulo de sección: el nombre y, debajo, una regla que se dibuja al aparecer.
+ *
+ * Nada de índice ni de regla que sale del costado del texto: el nombre se
+ * apoya en una línea a todo el ancho, como un encabezado de periódico.
+ * `title` es opcional y va DEBAJO de esa línea: el nombre rotula, la línea
+ * corta, y lo que viene después ya es la sección hablando.
+ */
 interface Props {
-  index: string;
   name: string;
+  title?: string;
   class?: string;
 }
-const { index, name, class: className } = Astro.props;
+const { name, title, class: className } = Astro.props;
 ---
 
 <div class:list={['label', className]} data-reveal data-inview="false">
-  <span class="label__index">{index}</span>
   <span class="label__name">{name}</span>
   <span class="label__rule" aria-hidden="true"></span>
+  {title && <p class="label__title">{title}</p>}
 </div>

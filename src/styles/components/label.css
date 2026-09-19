@@ -1,22 +1,19 @@
-/* Rótulo de sección: índice + nombre + regla que se dibuja al aparecer. */
+/* Rótulo de sección: el nombre apoyado en una regla a todo el ancho.
+
+   La regla va DEBAJO, no al costado. Un rótulo partido en tres piezas
+   —cifra, nombre y un filete que sale hacia la derecha— es el separador de
+   catálogo que trae de serie media web: aquí el nombre se subraya de lado a
+   lado y la sección empieza bajo esa línea, como un encabezado impreso.     */
 
 .label {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-sm);
+  display: grid;
+  /* Nombre → línea. Aire fijo bajo el rótulo: sin él, la regla choca con la
+     primera línea del bloque siguiente. Se fusiona con el margen superior del
+     hermano, así que no suma espacio donde ya lo hay.                       */
+  gap: var(--sp-xs);
   width: 100%;
-  /* Aire fijo bajo el rótulo: sin él, la regla horizontal choca con la
-     primera línea del bloque siguiente. Se fusiona con el margen superior
-     del hermano, así que no suma espacio donde ya lo hay.                 */
-  margin-block-end: clamp(1.75rem, 3.5vw, 3rem);
+  margin-block-end: var(--label-gap);
   color: var(--c-bone-mute);
-}
-
-.label__index {
-  font-family: var(--f-mono);
-  font-size: var(--t-meta);
-  letter-spacing: var(--ls-meta);
-  color: var(--c-ember);
 }
 
 .label__name {
@@ -24,11 +21,24 @@
   font-size: var(--t-meta);
   letter-spacing: var(--ls-meta);
   text-transform: uppercase;
-  white-space: nowrap;
+}
+
+/* Titular propio de la sección, cuando la tiene. Cuelga BAJO la regla, así
+   que necesita su propio aire: el `gap` de la rejilla sólo separa el nombre
+   de la línea, que van juntos a propósito.                                  */
+.label__title {
+  margin-block-start: var(--sp-sm);
+  max-width: 32ch;
+  font-family: var(--f-display);
+  font-size: var(--t-h2);
+  font-weight: var(--w-medium);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+  text-wrap: balance;
+  color: var(--c-bone);
 }
 
 .label__rule {
-  flex: 1;
   height: var(--bw);
   background: var(--c-line);
   transform: scaleX(0);
@@ -51,4 +61,12 @@
   pointer-events: none;
   user-select: none;
   z-index: 0;
+}
+
+/* La línea está dibujada desde el principio: es estructura, no una entrada. */
+@media (prefers-reduced-motion: reduce) {
+  .label__rule {
+    transform: none;
+    transition: none;
+  }
 }

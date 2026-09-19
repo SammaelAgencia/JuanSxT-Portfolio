@@ -8,11 +8,23 @@
   position: relative;
   overflow: hidden;
   /* El párrafo va centrado también en vertical, y para eso la sección necesita
-     un alto propio: sin sobrante que repartir, `align-content` no mueve nada.
+     un alto propio: sin sobrante que repartir no hay nada que centrar.
      `svh` y no `vh` para que la barra del navegador móvil no lo empuje. */
   display: grid;
-  align-content: center;
   min-block-size: 60svh;
+}
+
+/* Lo que se centra es la FRASE, no el bloque entero. Centrando el conjunto
+   —que es lo que hacía un `align-content: center` en la sección— el rótulo se
+   lleva su parte del sobrante y empuja el párrafo por debajo del centro real.
+   Así que el `.shell` se estira a todo el alto, el rótulo se queda arriba en
+   una fila `auto` y el párrafo se centra dentro del `1fr` que sobra.
+   La fila flexible nunca encoge por debajo de su contenido (`fr` parte de
+   `auto`), de modo que en pantallas bajas el párrafo sigue entero y el único
+   aire que queda es el margen inferior del propio rótulo.                   */
+.manifesto > .shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
 }
 
 .manifesto .ghost-num {
@@ -30,7 +42,14 @@
      párrafo conserva el mismo número de líneas en toda la escala fluida. */
   max-inline-size: 42ch;
   margin-inline: auto;
-  margin-block-start: clamp(2rem, 4.5vw, 3.5rem);
+  /* La frase a la misma distancia del rótulo que del inicio de «Trabajo».
+     No salen solas: debajo hay DOS rellenos de sección —el que cierra ésta y
+     el que abre la siguiente—, y encima sólo el margen del rótulo. Así que el
+     hueco de arriba se completa hasta igualar ese par, descontando lo que el
+     rótulo ya pone de su parte (son elementos de rejilla: aquí los márgenes
+     no se fusionan, se suman).                                              */
+  margin-block-start: calc(var(--section-y) * 2 - var(--label-gap));
+  align-self: center;
   font-family: var(--f-display);
   font-size: var(--t-h1);
   font-weight: var(--w-medium);
