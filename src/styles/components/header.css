@@ -77,7 +77,6 @@
   background: var(--c-glass);
   box-shadow: var(--shadow-glass);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   isolation: isolate;
 }
 

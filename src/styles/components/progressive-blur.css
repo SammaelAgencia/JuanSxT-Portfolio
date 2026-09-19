@@ -33,15 +33,7 @@
   position: absolute;
   inset: 0;
   backdrop-filter: blur(var(--b)) saturate(var(--pblur-saturate));
-  -webkit-backdrop-filter: blur(var(--b)) saturate(var(--pblur-saturate));
   mask-image: linear-gradient(
-    var(--pblur-dir),
-    transparent 0%,
-    transparent var(--from),
-    #000 var(--to),
-    #000 100%
-  );
-  -webkit-mask-image: linear-gradient(
     var(--pblur-dir),
     transparent 0%,
     transparent var(--from),

@@ -41,11 +41,7 @@
   mask-image:
     radial-gradient(130% 100% at 50% 0%, #000 45%, transparent 100%),
     linear-gradient(to bottom, #000 74%, transparent 98%);
-  -webkit-mask-image:
-    radial-gradient(130% 100% at 50% 0%, #000 45%, transparent 100%),
-    linear-gradient(to bottom, #000 74%, transparent 98%);
   mask-composite: intersect;
-  -webkit-mask-composite: source-in;
 }
 
 .torneo__head {

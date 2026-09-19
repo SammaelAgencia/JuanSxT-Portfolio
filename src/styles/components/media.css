@@ -91,7 +91,6 @@
   border-radius: var(--r-pill);
   background: color-mix(in oklab, var(--c-ink) 76%, transparent);
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   font-family: var(--f-mono);
   font-size: 0.625rem;
   letter-spacing: var(--ls-meta);

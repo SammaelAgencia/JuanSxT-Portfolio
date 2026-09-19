@@ -35,7 +35,6 @@
     var(--c-bone) calc(var(--intro-progress, 0) * 100%),
     color-mix(in oklab, var(--c-bone) 16%, transparent) calc(var(--intro-progress, 0) * 100%)
   );
-  -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
